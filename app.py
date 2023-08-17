@@ -50,7 +50,8 @@ def process_data():
         "answer": answer
     }
 
-    return response_data
+    # return response_data
+    return answer
 
 if __name__ == '__main__':
     app.run()
