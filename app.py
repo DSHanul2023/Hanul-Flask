@@ -62,5 +62,17 @@ def get_data():
 
     return jsonify(data)
 
+@app.route('/chatdata', methods=['GET'])
+def get_chatdata():
+    chat_data = get_chat_data()
+
+    return jsonify({"chat_data": chat_data})
+
+@app.route('/chatitem', methods=['GET'])
+def get_chatitem():
+    item_data = get_item_data()
+
+    return jsonify({"item_data": item_data})
+
 if __name__ == '__main__':
     app.run()
