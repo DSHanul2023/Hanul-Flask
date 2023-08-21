@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from model.kogpt2 import DialogKoGPT2
 from kogpt2_transformers import get_kogpt2_tokenizer
-from get_data import get_item_data, get_chat_data
+from get_data import get_item_data, get_chat_data, recommend_movies_for_members
 import torch
 
 app = Flask(__name__)
@@ -73,6 +73,16 @@ def get_chatitem():
     item_data = get_item_data()
 
     return jsonify({"item_data": item_data})
+
+@app.route('/movie', methods=['GET'])
+def recommend_movies():
+    item_data = get_item_data()
+    chat_data = get_chat_data()
+
+    recommended_movies = recommend_movies_for_members(item_data, chat_data)
+
+    return jsonify(recommended_movies)
+
 
 if __name__ == '__main__':
     app.run()
