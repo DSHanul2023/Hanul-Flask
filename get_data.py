@@ -51,23 +51,23 @@ def get_chat_data():
     return chat_data
 
 def recommend_movies_for_members(item_data, chat_data):
-    # 영화 상세 설명 데이터
-    movie_descriptions = [item[1] for item in item_data]
-    
+    # 영화 정보 데이터
+    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'image_url': item[4], 'member_id': item[5]} for item in item_data]
+
     # 고유한 멤버 ID 가져오기
-    member_ids = set(chat[0] for chat in chat_data)
+    member_ids = set(chat[3] for chat in chat_data)
 
     # 각 멤버의 채팅 메시지를 저장할 딕셔너리
     member_chat_messages = {}
 
     # 채팅 데이터를 멤버별로 그룹화하여 처리
     for chat in chat_data:
-        member_id, message = chat[0], chat[1]
+        member_id, message = chat[3], chat[1]
         if member_id not in member_chat_messages:
             member_chat_messages[member_id] = []
         member_chat_messages[member_id].append(message)
 
-    # 멤버별 추천 영화를 저장하는 딕셔너리
+    # 멤버별 추천 영화 정보를 저장하는 딕셔너리
     recommended_movies = {}
 
     # 멤버별 채팅 데이터를 가져와서 처리
@@ -76,22 +76,22 @@ def recommend_movies_for_members(item_data, chat_data):
 
         # 데이터 전처리
         preprocessed_chat_messages = [preprocess_text(text) for text in chat_messages]
-        preprocessed_movie_descriptions = [preprocess_text(text) for text in movie_descriptions]
+        preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info if info['member_id'] != member_id]
 
         # TF-IDF 벡터화
         vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(preprocessed_chat_messages + preprocessed_movie_descriptions)
+        tfidf_matrix = vectorizer.fit_transform(preprocessed_chat_messages + preprocessed_movie_info)
 
-        # 채팅 메시지와 영화 설명 간의 코사인 유사도 계산
+        # 채팅 메시지와 영화 정보 간의 코사인 유사도 계산
         similarity_matrix = cosine_similarity(tfidf_matrix)
 
         # 유사도가 높은 영화 추천
-        chat_similarity_scores = similarity_matrix[:-len(movie_descriptions), -len(movie_descriptions):]
+        chat_similarity_scores = similarity_matrix[:-len(movie_info), -len(movie_info):]
         top_similar_indices = chat_similarity_scores.argmax(axis=1)
 
-        recommended_movies[member_id] = [item_data[idx][1] for idx in top_similar_indices]
+        recommended_movies[member_id] = [movie_info[idx] for idx in top_similar_indices]
 
-        return recommended_movies
+    return recommended_movies
 
 if __name__ == "__main__":
     item_data = get_item_data()
