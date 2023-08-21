@@ -1,10 +1,8 @@
 from flask import Flask, request, jsonify
-import json
-import os
-import numpy as np
-import torch
 from model.kogpt2 import DialogKoGPT2
 from kogpt2_transformers import get_kogpt2_tokenizer
+from get_data import get_item_data, get_chat_data
+import torch
 
 app = Flask(__name__)
 
@@ -37,7 +35,6 @@ def process_with_model(question):
     if second_dot_index != -1:
         answer = answer[:second_dot_index + 1]
 
-
     return answer
 
 @app.route('/process', methods=['POST'])
@@ -52,6 +49,18 @@ def process_data():
 
     # return response_data
     return answer
+
+@app.route('/get_data', methods=['GET'])
+def get_data():
+    item_data = get_item_data()
+    chat_data = get_chat_data()
+
+    data = {
+        "item_data": item_data,
+        "chat_data": chat_data
+    }
+
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run()
