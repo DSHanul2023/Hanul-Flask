@@ -52,7 +52,7 @@ def get_chat_data():
 
 def recommend_movies_for_members(item_data, chat_data):
     # 영화 정보 데이터
-    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'image_url': item[4], 'member_id': item[5]} for item in item_data]
+    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6]} for item in item_data]
 
     # 고유한 멤버 ID 가져오기
     member_ids = set(chat[3] for chat in chat_data)
