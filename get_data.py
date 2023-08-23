@@ -50,6 +50,18 @@ def get_chat_data():
 
     return chat_data
 
+# 추천 영화 중 중복 제거
+def remove_duplicate_movies(movies):
+    unique_movies = []
+    movie_ids_seen = set()
+
+    for movie in movies:
+        if movie['movie_id'] not in movie_ids_seen:
+            unique_movies.append(movie)
+            movie_ids_seen.add(movie['movie_id'])
+
+    return unique_movies
+
 def recommend_movies_for_members(item_data, chat_data):
     # 영화 정보 데이터
     movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6]} for item in item_data]
@@ -90,6 +102,9 @@ def recommend_movies_for_members(item_data, chat_data):
         top_similar_indices = chat_similarity_scores.argmax(axis=1)
 
         recommended_movies[member_id] = [movie_info[idx] for idx in top_similar_indices]
+
+        # 중복 영화 제거
+        recommended_movies[member_id] = remove_duplicate_movies(recommended_movies[member_id])
 
     return recommended_movies
 
