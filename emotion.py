@@ -143,12 +143,11 @@ c_model.eval()
 # 감정 분류
 
 def predict(predict_sentence):
-
     data = [predict_sentence, '0']
     dataset_another = [data]
 
     another_test = BERTDataset(dataset_another, 0, 1, tokenizer, vocab, max_len, True, False)
-    test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=5)
+    test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=0)
 
     c_model.eval()
 
