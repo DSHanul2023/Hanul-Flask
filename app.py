@@ -6,6 +6,7 @@ import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from pytorch_lightning import LightningModule, Trainer
 from model.kogpt2 import DialogKoGPT2
+from emotion import predict
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
