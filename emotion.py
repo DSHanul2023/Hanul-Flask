@@ -3,7 +3,7 @@
 
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
 
-PATH='C:\2023-1 Workspace\한울_2023(졸업 프로젝트)\Flask-hanul\kobert_state_ver2.pt'
+PATH = 'C:/Users/82109/Desktop/Flask-hanul/model/kobert_state_ver2.pt'
 
 import torch
 from torch import nn
@@ -19,6 +19,7 @@ from transformers import BertModel
 
 from transformers import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
+from app import tokenizer
 
 class BERTClassifier(nn.Module):
     def __init__(self,
