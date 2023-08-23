@@ -1,3 +1,4 @@
+
 # 감정 분류 추론 모델 로드
 
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
@@ -47,6 +48,7 @@ class BERTClassifier(nn.Module):
         if self.dr_rate:
             out = self.dropout(pooler)
         return self.classifier(out)
+
 
 class BERTSentenceTransform:
 
@@ -123,7 +125,6 @@ class BERTDataset(Dataset):
     def __len__(self):
         return (len(self.labels))
 
-tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
 bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
 vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
 
@@ -133,6 +134,7 @@ warmup_ratio = 0.1
 num_epochs = 5
 max_grad_norm = 1
 log_interval = 200
+
 learning_rate =  5e-5
 
 device = torch.device('cpu')
@@ -156,15 +158,18 @@ def predict(predict_sentence):
         token_ids = token_ids.long().to(device)
         segment_ids = segment_ids.long().to(device)
 
+
         valid_length= valid_length
-        label = label.long().to(device)
+
 
         out = c_model(token_ids, valid_length, segment_ids)
+
 
 
         test_eval=[]
         for i in out:
             logits=i
+
             logits = logits.detach().cpu().numpy()
 
             if np.argmax(logits) == 0:
@@ -184,12 +189,5 @@ def predict(predict_sentence):
             elif np.argmax(logits) == 7:
                 test_eval.append("공포가")
 
-        print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
+        return test_eval[0]
 
-end = 1
-while end == 1 :
-    sentence = input("하고싶은 말을 입력해주세요 : ")
-    if sentence == "0" :
-        break
-    predict(sentence)
-    print("\n")
