@@ -4,6 +4,9 @@ from kogpt2_transformers import get_kogpt2_tokenizer
 from get_data import get_item_data, get_chat_data, recommend_movies_for_members
 import torch
 
+from emotion import predict
+from emotion import c_model
+
 app = Flask(__name__)
 
 # KoGPT-2 모델 초기화 및 로드
@@ -82,6 +85,18 @@ def recommend_movies():
     recommended_movies = recommend_movies_for_members(item_data, chat_data)
 
     return jsonify(recommended_movies)
+
+@app.route('/emotion', methods=['POST'])
+def analyze_emotion():
+    request_data = request.json
+    message = request_data.get('message', '')  # 'message' 필드에서 데이터를 가져옴
+    predicted_emotion = predict(message)  # 감정 분석 수행
+
+    response_data = {
+        "predicted_emotion": predicted_emotion
+    }
+
+    return jsonify(response_data)
 
 
 if __name__ == '__main__':
