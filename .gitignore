@@ -1,6 +1,8 @@
 __pycache__/get_data.cpython-311.pyc
 checkpoint/kogpt2-wellnesee-auto-regressive.pth
 model/__pycache__/kogpt2.cpython-311.pyc
+venv/
+kobert_state_ver2.pt
 __pycache__/emotion.cpython-311.pyc
 model/kobert_state_ver2.pt
 

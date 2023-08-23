@@ -1,12 +1,54 @@
-import numpy as np
-import torch
-from torch.utils.data import Dataset
-from transformers import BertModel, BertTokenizer
-import gluonnlp as nlp
 
 # 감정 분류 추론 모델 로드
 
-# !pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
+# pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
+
+PATH='C:\2023-1 Workspace\한울_2023(졸업 프로젝트)\Flask-hanul\kobert_state_ver2.pt'
+
+import torch
+from torch import nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+import gluonnlp as nlp
+import numpy as np
+from tqdm import tqdm, tqdm_notebook
+
+from kobert_tokenizer import KoBERTTokenizer
+from transformers import BertModel
+
+from transformers import AdamW
+from transformers.optimization import get_cosine_schedule_with_warmup
+
+class BERTClassifier(nn.Module):
+    def __init__(self,
+                bert,
+                hidden_size = 768,
+                num_classes=8,
+                dr_rate=None,
+                params=None):
+        super(BERTClassifier, self).__init__()
+        self.bert = bert
+        self.dr_rate = dr_rate
+
+        self.classifier = nn.Linear(hidden_size , num_classes)
+        if dr_rate:
+            self.dropout = nn.Dropout(p=dr_rate)
+
+    def gen_attention_mask(self, token_ids, valid_length):
+        attention_mask = torch.zeros_like(token_ids)
+        for i, v in enumerate(valid_length):
+            attention_mask[i][:v] = 1
+        return attention_mask.float()
+
+    def forward(self, token_ids, valid_length, segment_ids):
+        attention_mask = self.gen_attention_mask(token_ids, valid_length)
+
+        _, pooler = self.bert(input_ids = token_ids, token_type_ids = segment_ids.long(), attention_mask = attention_mask.float().to(token_ids.device))
+        if self.dr_rate:
+            out = self.dropout(pooler)
+        return self.classifier(out)
+
 
 class BERTSentenceTransform:
 
@@ -82,10 +124,7 @@ class BERTDataset(Dataset):
 
     def __len__(self):
         return (len(self.labels))
-    
 
-    # Load KoBERT tokenizer and model
-tokenizer = BertTokenizer.from_pretrained('skt/kobert-base-v1')
 bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
 vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
 
@@ -95,16 +134,18 @@ warmup_ratio = 0.1
 num_epochs = 5
 max_grad_norm = 1
 log_interval = 200
-learning_rate = 5e-5
+
+learning_rate =  5e-5
 
 device = torch.device('cpu')
 
-# Load the emotion classification model
-c_model = torch.load('model/kobert_state_ver2.pt')
+c_model = torch.load(PATH, map_location=torch.device('cpu'))
 c_model.eval()
 
-# Emotion classification function
+# 감정 분류
+
 def predict(predict_sentence):
+
     data = [predict_sentence, '0']
     dataset_another = [data]
 
@@ -117,14 +158,18 @@ def predict(predict_sentence):
         token_ids = token_ids.long().to(device)
         segment_ids = segment_ids.long().to(device)
 
-        valid_length = valid_length
-        label = label.long().to(device)
+
+        valid_length= valid_length
+
 
         out = c_model(token_ids, valid_length, segment_ids)
 
-        test_eval = []
+
+
+        test_eval=[]
         for i in out:
-            logits = i
+            logits=i
+
             logits = logits.detach().cpu().numpy()
 
             if np.argmax(logits) == 0:
@@ -145,3 +190,4 @@ def predict(predict_sentence):
                 test_eval.append("공포가")
 
         return test_eval[0]
+
