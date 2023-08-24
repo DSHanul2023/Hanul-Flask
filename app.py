@@ -5,7 +5,7 @@ import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from pytorch_lightning import LightningModule
 from model.kogpt2 import DialogKoGPT2
-from emotion import load_and_predict
+from emotion import load_and_predict, load_c_model
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
@@ -111,10 +111,11 @@ def process_emotion():
     request_data = request.json
     question = request_data.get('question', '')
 
-    # 감정 분석 수행
-    predicted_emotions = load_and_predict(question, c_model)  # c_model을 인자로 전달
+    # Load the c_model here
+    c_model, c_tokenizer = load_c_model(PATH)  # 감정 분석 모델과 토크나이저 로드 함수를 함께 호출
 
-    # 대화 모델에 입력하여 답변 생성
+    # Perform emotion analysis and generate an answer
+    predicted_emotions = load_and_predict(question, c_model, c_tokenizer)
     answer = dialog_model.inference(question)
 
     response_data = {
@@ -124,10 +125,8 @@ def process_emotion():
 
     return jsonify(response_data)
 
-
 if __name__ == '__main__':
     dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
     dialog_model.load_model()
-    c_model = torch.load(PATH, map_location=torch.device('cpu'))
-    c_model.eval()
+
     app.run()
