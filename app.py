@@ -107,18 +107,18 @@ def recommend_movies():
     return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
-def process_emotion():
+def infer_emotion():
     request_data = request.json
-    question = request_data.get('question', '')
+    text = request_data.get('text', '')
 
-    # c_model과 c_tokenizer를 여기서 로드합니다.
-    c_model, c_tokenizer = load_c_model(PATH)  # 모델과 토크나이저 모두 로드
+    # 감정 분류 모델과 토크나이저 로드
+    c_model, c_tokenizer = load_c_model(PATH)
 
-    # 감정 분석
-    predicted_emotions = load_and_predict(question, c_model, c_tokenizer)  # 두 인자를 모두 전달
+    # 감정 분류 예측
+    predicted_emotions = load_and_predict(text, c_model, c_tokenizer)
 
     response_data = {
-        "predicted_emotion": predicted_emotions
+        "predicted_emotions": predicted_emotions
     }
 
     return jsonify(response_data)

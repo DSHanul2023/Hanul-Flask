@@ -168,30 +168,22 @@ def load_and_predict(predict_sentence, c_model, c_tokenizer):
         token_ids = token_ids.long()
         segment_ids = segment_ids.long()
 
-        valid_length= valid_length
+        valid_length = valid_length
         label = label.long()
 
         out = c_model(token_ids, valid_length, segment_ids)
 
         for i in out:
-            logits=i
+            logits = i
             logits = logits.detach().cpu().numpy()
 
-            if np.argmax(logits) == 0:
-                predicted_emotions.append("분노")
-            elif np.argmax(logits) == 1:
-                predicted_emotions.append("슬픔")
-            elif np.argmax(logits) == 2:
-                predicted_emotions.append("기쁨")
-            elif np.argmax(logits) == 3:
-                predicted_emotions.append("걱정")
-            elif np.argmax(logits) == 4:
-                predicted_emotions.append("불안감")
-            elif np.argmax(logits) == 5:
-                predicted_emotions.append("중립")
-            elif np.argmax(logits) == 6:
-                predicted_emotions.append("우울감")
-            elif np.argmax(logits) == 7:
-                predicted_emotions.append("공포")
+            emotion_labels = ["분노", "슬픔", "기쁨", "걱정", "불안감", "중립", "우울감", "공포"]
+            predicted_emotion_idx = np.argmax(logits)
+            predicted_emotions.append(emotion_labels[predicted_emotion_idx])
 
     return predicted_emotions
+
+# 예측된 감정을 출력하는 함수
+def predict(predict_sentence, c_model, c_tokenizer):
+    predicted_emotions = load_and_predict(predict_sentence, c_model, c_tokenizer)
+    print(">> 입력하신 내용에서 " + predicted_emotions[0] + " 느껴집니다.")
