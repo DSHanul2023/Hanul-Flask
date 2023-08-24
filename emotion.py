@@ -179,6 +179,19 @@ def load_and_predict(predict_sentence, c_model, c_tokenizer):
 
             if np.argmax(logits) == 0:
                 predicted_emotions.append("분노가")
-            # ... (나머지 감정도 동일하게 처리)
+            elif np.argmax(logits) == 1:
+                predicted_emotions.append("슬픔이")
+            elif np.argmax(logits) == 2:
+                predicted_emotions.append("기쁨이")
+            elif np.argmax(logits) == 3:
+                predicted_emotions.append("걱정이")
+            elif np.argmax(logits) == 4:
+                predicted_emotions.append("불안감이")
+            elif np.argmax(logits) == 5:
+                predicted_emotions.append("중립이")
+            elif np.argmax(logits) == 6:
+                predicted_emotions.append("우울감이")
+            elif np.argmax(logits) == 7:
+                predicted_emotions.append("공포가")
 
     return predicted_emotions

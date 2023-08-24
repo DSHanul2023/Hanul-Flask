@@ -5,7 +5,7 @@ import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from pytorch_lightning import LightningModule
 from model.kogpt2 import DialogKoGPT2
-from emotion import load_and_predict, load_c_model
+from emotion import load_and_predict, load_c_model, BERTClassifier
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
