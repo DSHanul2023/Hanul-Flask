@@ -18,6 +18,7 @@ from transformers import BertModel
 
 from transformers import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
+from emotion import c_model
 
 class BERTClassifier(nn.Module):
     def __init__(self,
@@ -141,54 +142,49 @@ c_model = torch.load(PATH, map_location=torch.device('cpu'))
 c_model.eval()
 
 # 감정 분류
+def load_and_predict(predict_sentence, c_model):
+    tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
+    vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
 
-def predict(predict_sentence):
+    max_len = 128
+    batch_size = 10
+
     data = [predict_sentence, '0']
     dataset_another = [data]
 
     another_test = BERTDataset(dataset_another, 0, 1, tokenizer, vocab, max_len, True, False)
     test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=0)
 
-    c_model.eval()
+    predicted_emotions = []  # 예측된 감정을 저장하는 리스트
 
     for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(test_dataloader):
-        token_ids = token_ids.long().to(device)
-        segment_ids = segment_ids.long().to(device)
+        token_ids = token_ids.long()
+        segment_ids = segment_ids.long()
 
         valid_length= valid_length
-        label = label.long().to(device)
+        label = label.long()
 
         out = c_model(token_ids, valid_length, segment_ids)
 
-
-        test_eval=[]
         for i in out:
             logits=i
             logits = logits.detach().cpu().numpy()
 
             if np.argmax(logits) == 0:
-                test_eval.append("분노가")
+                predicted_emotions.append("분노가")
             elif np.argmax(logits) == 1:
-                test_eval.append("슬픔이")
+                predicted_emotions.append("슬픔이")
             elif np.argmax(logits) == 2:
-                test_eval.append("기쁨이")
+                predicted_emotions.append("기쁨이")
             elif np.argmax(logits) == 3:
-                test_eval.append("걱정이")
+                predicted_emotions.append("걱정이")
             elif np.argmax(logits) == 4:
-                test_eval.append("불안감이")
+                predicted_emotions.append("불안감이")
             elif np.argmax(logits) == 5:
-                test_eval.append("중립이")
+                predicted_emotions.append("중립이")
             elif np.argmax(logits) == 6:
-                test_eval.append("우울감이")
+                predicted_emotions.append("우울감이")
             elif np.argmax(logits) == 7:
-                test_eval.append("공포가")
+                predicted_emotions.append("공포가")
 
-        print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
-
-end = 1
-while end == 1 :
-    sentence = input("하고싶은 말을 입력해주세요 : ")
-    if sentence == "0" :
-        break
-    predict(sentence)
-    print("\n")
+    return predicted_emotions

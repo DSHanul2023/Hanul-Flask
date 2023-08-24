@@ -7,3 +7,5 @@ __pycache__/emotion.cpython-311.pyc
 model/kobert_state_ver2.pt
 
 __pycache__/app.cpython-311.pyc
+__pycache__/classifier.cpython-311.pyc
+model/__pycache__/kogpt2.cpython-311.pyc
