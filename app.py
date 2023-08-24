@@ -111,15 +111,13 @@ def process_emotion():
     request_data = request.json
     question = request_data.get('question', '')
 
-    # Load the c_model here
-    c_model, c_tokenizer = load_c_model(PATH)  # 감정 분석 모델과 토크나이저 로드 함수를 함께 호출
+    # c_model과 c_tokenizer를 여기서 로드합니다.
+    c_model, c_tokenizer = load_c_model(PATH)  # 모델과 토크나이저 모두 로드
 
-    # Perform emotion analysis and generate an answer
-    predicted_emotions = load_and_predict(question, c_model, c_tokenizer)
-    answer = dialog_model.inference(question)
+    # 감정 분석
+    predicted_emotions = load_and_predict(question, c_model, c_tokenizer)  # 두 인자를 모두 전달
 
     response_data = {
-        "answer": answer,
         "predicted_emotion": predicted_emotions
     }
 
