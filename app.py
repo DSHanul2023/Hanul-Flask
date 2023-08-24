@@ -1,16 +1,16 @@
 from flask import Flask, request, jsonify
+from kobert_tokenizer import KoBERTTokenizer
+
+import emotion
 from get_data import get_item_data, get_chat_data, recommend_movies_for_members
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2, DialogKoGPT2Wrapper
-
-
+from emotion import BERTClassifier,predict
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
-
-PATH = 'C:/Users/82109/Desktop/Flask-hanul/model/kobert_state_ver2.pt'
 
 app = Flask(__name__)
 
@@ -64,21 +64,15 @@ def recommend_movies():
     return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
-def infer_emotion():
+def process_emotion():
     request_data = request.json
-    text = request_data.get('text', '')
-
-    # 감정 분류 모델과 토크나이저 로드
-    c_model, c_tokenizer = load_c_model(PATH)
-
-    # 감정 분류 예측
-    predicted_emotions = load_and_predict(text, c_model, c_tokenizer)
-
+    question = request_data.get('question', '')
+    result = predict(question)
     response_data = {
-        "predicted_emotions": predicted_emotions
+        "predicted_emotion": result
     }
-
     return jsonify(response_data)
-
 if __name__ == '__main__':
+    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
+    dialog_model.load_model()
     app.run()
