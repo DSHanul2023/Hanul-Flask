@@ -178,20 +178,20 @@ def load_and_predict(predict_sentence, c_model, c_tokenizer):
             logits = logits.detach().cpu().numpy()
 
             if np.argmax(logits) == 0:
-                predicted_emotions.append("분노가")
+                predicted_emotions.append("분노")
             elif np.argmax(logits) == 1:
-                predicted_emotions.append("슬픔이")
+                predicted_emotions.append("슬픔")
             elif np.argmax(logits) == 2:
-                predicted_emotions.append("기쁨이")
+                predicted_emotions.append("기쁨")
             elif np.argmax(logits) == 3:
-                predicted_emotions.append("걱정이")
+                predicted_emotions.append("걱정")
             elif np.argmax(logits) == 4:
-                predicted_emotions.append("불안감이")
+                predicted_emotions.append("불안감")
             elif np.argmax(logits) == 5:
-                predicted_emotions.append("중립이")
+                predicted_emotions.append("중립")
             elif np.argmax(logits) == 6:
-                predicted_emotions.append("우울감이")
+                predicted_emotions.append("우울감")
             elif np.argmax(logits) == 7:
-                predicted_emotions.append("공포가")
+                predicted_emotions.append("공포")
 
     return predicted_emotions
