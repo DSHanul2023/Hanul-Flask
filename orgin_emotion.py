@@ -137,53 +137,58 @@ learning_rate =  5e-5
 
 device = torch.device('cpu')
 
-# 감정 분류 모델과 토크나이저 로드 함수 정의
-def load_c_model(PATH):
-    c_model = torch.load(PATH, map_location=torch.device('cpu'))
-    c_model.eval()
+c_model = torch.load(PATH, map_location=torch.device('cpu'))
+c_model.eval()
 
-    # 감정 분류 모델에 맞는 토크나이저 로드
-    c_tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')  # 적절한 토크나이저로 수정해야 합니다.
+# 감정 분류
 
-    return c_model, c_tokenizer
-
-# 감정 분류 함수 수정
-def load_and_predict(predict_sentence, c_model, c_tokenizer):
-    # 토크나이저 및 감정 분류 모델 설정
-    tokenizer = c_tokenizer
-    vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
-
-    max_len = 128
-    batch_size = 10
-
+def predict(predict_sentence):
     data = [predict_sentence, '0']
     dataset_another = [data]
 
     another_test = BERTDataset(dataset_another, 0, 1, tokenizer, vocab, max_len, True, False)
     test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=0)
 
-    predicted_emotions = []  # 예측된 감정을 저장하는 리스트
+    c_model.eval()
 
     for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(test_dataloader):
-        token_ids = token_ids.long()
-        segment_ids = segment_ids.long()
+        token_ids = token_ids.long().to(device)
+        segment_ids = segment_ids.long().to(device)
 
-        valid_length = valid_length
-        label = label.long()
+        valid_length= valid_length
+        label = label.long().to(device)
 
         out = c_model(token_ids, valid_length, segment_ids)
 
+
+        test_eval=[]
         for i in out:
-            logits = i
+            logits=i
             logits = logits.detach().cpu().numpy()
 
-            emotion_labels = ["분노", "슬픔", "기쁨", "걱정", "불안감", "중립", "우울감", "공포"]
-            predicted_emotion_idx = np.argmax(logits)
-            predicted_emotions.append(emotion_labels[predicted_emotion_idx])
+            if np.argmax(logits) == 0:
+                test_eval.append("분노가")
+            elif np.argmax(logits) == 1:
+                test_eval.append("슬픔이")
+            elif np.argmax(logits) == 2:
+                test_eval.append("기쁨이")
+            elif np.argmax(logits) == 3:
+                test_eval.append("걱정이")
+            elif np.argmax(logits) == 4:
+                test_eval.append("불안감이")
+            elif np.argmax(logits) == 5:
+                test_eval.append("중립이")
+            elif np.argmax(logits) == 6:
+                test_eval.append("우울감이")
+            elif np.argmax(logits) == 7:
+                test_eval.append("공포가")
 
-    return predicted_emotions
+        print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
 
-# 예측된 감정을 출력하는 함수
-def predict(predict_sentence, c_model, c_tokenizer):
-    predicted_emotions = load_and_predict(predict_sentence, c_model, c_tokenizer)
-    print(">> 입력하신 내용에서 " + predicted_emotions[0] + " 느껴집니다.")
+end = 1
+while end == 1 :
+    sentence = input("하고싶은 말을 입력해주세요 : ")
+    if sentence == "0" :
+        break
+    predict(sentence)
+    print("\n")
