@@ -1,16 +1,17 @@
 from flask import Flask, request, jsonify
-
 from get_data import get_item_data, get_chat_data, recommend_movies_for_members
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
-from pytorch_lightning import LightningModule, Trainer
+from pytorch_lightning import LightningModule
 from model.kogpt2 import DialogKoGPT2
-from emotion import predict
+from emotion import load_and_predict
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
+
+PATH = 'C:/Users/82109/Desktop/Flask-hanul/model/kobert_state_ver2.pt'
 
 app = Flask(__name__)
 
@@ -106,13 +107,19 @@ def recommend_movies():
     return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
-def analyze_emotion():
+def process_emotion():
     request_data = request.json
-    message = request_data.get('message', '')  # 'message' 필드에서 데이터를 가져옴
-    predicted_emotion = predict(message)  # 감정 분석 수행
+    question = request_data.get('question', '')
+
+    # 감정 분석 수행
+    predicted_emotions = load_and_predict(question, c_model)  # c_model을 인자로 전달
+
+    # 대화 모델에 입력하여 답변 생성
+    answer = dialog_model.inference(question)
 
     response_data = {
-        "predicted_emotion": predicted_emotion
+        "answer": answer,
+        "predicted_emotion": predicted_emotions
     }
 
     return jsonify(response_data)
@@ -121,4 +128,6 @@ def analyze_emotion():
 if __name__ == '__main__':
     dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
     dialog_model.load_model()
+    c_model = torch.load(PATH, map_location=torch.device('cpu'))
+    c_model.eval()
     app.run()
