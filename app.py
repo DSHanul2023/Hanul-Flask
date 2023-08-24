@@ -11,7 +11,7 @@ root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
-PATH = 'C:/Users/82109/Desktop/Flask-hanul/model/kobert_state_ver2.pt'
+PATH = 'C:/Users/82109/Desktop/졸업 프로젝트/Flask-hanul/model/kobert_state_ver2.pt'
 
 app = Flask(__name__)
 
