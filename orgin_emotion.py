@@ -2,7 +2,8 @@
 
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
 
-PATH = 'C:/Users/82109/Desktop/Flask-hanul/model/kobert_state_ver2.pt'
+PATH = 'C:/Users/82109/Desktop/졸업 프로젝트/Flask-hanul/model/kobert_state_ver2.pt'
+
 
 import torch
 from torch import nn

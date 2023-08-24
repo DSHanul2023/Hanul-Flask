@@ -93,13 +93,35 @@ def recommend_movies_for_members(item_data, chat_data):
 
     return recommended_movies
 
+
+def memberchat(chat_data):
+    # Create a dictionary to store chat messages for each member
+    member_chat_messages = {}
+
+    for chat in chat_data:
+        member_id, message = chat[3], chat[1]
+        if member_id not in member_chat_messages:
+            member_chat_messages[member_id] = []
+        member_chat_messages[member_id].append(message)
+
+    return member_chat_messages
+
+
 if __name__ == "__main__":
     item_data = get_item_data()
     chat_data = get_chat_data()
 
+    '''
     recommended_movies = recommend_movies_for_members(item_data, chat_data)
 
     for member_id, movies in recommended_movies.items():
         print(f"{member_id} 멤버에게 추천하는 영화:")
         for movie in movies:
             print(movie)
+    '''
+    member_chat_messages = memberchat(chat_data)
+
+    for member_id, messages in member_chat_messages.items():
+        print(f"{member_id}")
+        for message in messages:
+            print(message)
