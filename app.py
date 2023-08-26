@@ -11,10 +11,21 @@ from emotion import BERTClassifier,predict
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
-
+save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 app = Flask(__name__)
+ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
+
+
+@app.route('/process2',methods=['POST'])
+def process2_data():
+    loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+    loaded_quantized_model.load_model()
+    request_data = request.json
+    question = request_data.get('question', '')
+    answer = dialog_model.inference(question)
+    return answer
 
 @app.route('/process', methods=['POST'])
 def process_data():
