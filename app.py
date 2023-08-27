@@ -4,7 +4,8 @@ from get_data import get_item_data, get_chat_data, recommend_movies_for_members
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
-from model.kogpt2 import DialogKoGPT2, DialogKoGPT2Wrapper
+from model.kogpt2 import DialogKoGPT2Wrapper
+from emotion import predict
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
@@ -14,18 +15,24 @@ app = Flask(__name__)
 
 tokenizer = get_kogpt2_tokenizer()
 
+# 전역 변수로 모델을 저장할 변수
+global dialog_model
+dialog_model = None
+
+@app.before_request # 처음 실행할 때 모델 한 번만 load
+def load_model():
+    global dialog_model
+    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(checkpoint_path), tokenizer)
+    dialog_model.load_model()
+
 @app.route('/process', methods=['POST'])
 def process_data():
-    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
-    dialog_model.load_model()
+    global dialog_model
+
     request_data = request.json
     question = request_data.get('question', '')
     answer = dialog_model.inference(question)
-    response_data = {
-        "answer": answer
-    }
 
-    # return response_data
     return answer
 
 @app.route('/get_data', methods=['GET'])
@@ -61,6 +68,16 @@ def recommend_movies():
 
     return jsonify(recommended_movies)
 
+@app.route('/emotion', methods=['POST'])
+def emotion():
+    request_data = request.json
+    sentence = request_data.get('sentence', '')
+    result = predict(sentence)
+    print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
+    return result
+
+
 
 if __name__ == '__main__':
     app.run()
+

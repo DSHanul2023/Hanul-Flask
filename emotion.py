@@ -1,8 +1,9 @@
 # 감정 분류 추론 모델 로드
 
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
+# pip install "git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf" #쌍따옴표로 하니까 됨
 
-PATH='C:\2023-1 Workspace\한울_2023(졸업 프로젝트)\Flask-hanul\kobert_state_ver2.pt'
+PATH = 'kobert_state_ver2.pt'
 
 import torch
 from torch import nn
@@ -18,6 +19,19 @@ from transformers import BertModel
 
 from transformers import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
+
+device = torch.device('cpu')
+tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
+bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
+vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
+
+max_len = 128
+batch_size = 10
+warmup_ratio = 0.1
+num_epochs = 5
+max_grad_norm = 1
+log_interval = 200
+learning_rate =  5e-5
 
 class BERTClassifier(nn.Module):
     def __init__(self,
@@ -123,24 +137,12 @@ class BERTDataset(Dataset):
     def __len__(self):
         return (len(self.labels))
 
-tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
-bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
-vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
-
-max_len = 128
-batch_size = 10
-warmup_ratio = 0.1
-num_epochs = 5
-max_grad_norm = 1
-log_interval = 200
-learning_rate =  5e-5
-
-device = torch.device('cpu')
-
-c_model = torch.load(PATH, map_location=torch.device('cpu'))
-c_model.eval()
-
 # 감정 분류
+
+c_model = BERTClassifier(bertmodel, dr_rate=0.5).to(device)
+torch.save(c_model.state_dict(), PATH)
+c_model.load_state_dict(torch.load(PATH, map_location='cpu'))
+c_model.eval()
 
 def predict(predict_sentence):
     data = [predict_sentence, '0']
@@ -183,12 +185,5 @@ def predict(predict_sentence):
             elif np.argmax(logits) == 7:
                 test_eval.append("공포가")
 
-        print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
-
-end = 1
-while end == 1 :
-    sentence = input("하고싶은 말을 입력해주세요 : ")
-    if sentence == "0" :
-        break
-    predict(sentence)
-    print("\n")
+        # print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
+        return test_eval[0]
