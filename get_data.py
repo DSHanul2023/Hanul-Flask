@@ -36,12 +36,12 @@ def get_item_data():
     return item_data
 
 # "chat" 테이블 데이터 가져오기
-def get_chat_data():
+def get_chat_data(member_id):
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
-    query = "SELECT * FROM chat"
-    cursor.execute(query)
+    query = "SELECT * FROM chat WHERE member_id = %s"
+    cursor.execute(query, (member_id,))  # 매개변수를 통해 SQL 쿼리 파라미터 전달
 
     chat_data = cursor.fetchall()
 
@@ -62,12 +62,16 @@ def remove_duplicate_movies(movies):
 
     return unique_movies
 
-def recommend_movies_for_members(item_data, chat_data):
-    # 영화 정보 데이터
-    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6]} for item in item_data]
+def preprocess_movie_info(movie_info):
+    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
+    return preprocessed_movie_info
 
-    # 고유한 멤버 ID 가져오기
-    member_ids = set(chat[3] for chat in chat_data)
+import time
+
+def recommend_movies_for_members(pre_item_data, item_data, chat_data):
+    # 영화 정보 데이터
+    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
+                   'image_url': item[5], 'member_id': item[6]} for item in item_data]
 
     # 각 멤버의 채팅 메시지를 저장할 딕셔너리
     member_chat_messages = {}
@@ -83,38 +87,40 @@ def recommend_movies_for_members(item_data, chat_data):
     recommended_movies = {}
 
     # 멤버별 채팅 데이터를 가져와서 처리
-    for member_id in member_ids:
-        chat_messages = member_chat_messages.get(member_id, [])
+    chat_messages = member_chat_messages.get(member_id, [])
 
-        # 데이터 전처리
-        preprocessed_chat_messages = [preprocess_text(text) for text in chat_messages]
-        preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info if info['member_id'] != member_id]
+    start_time = time.time()  # 시작 시간 기록
+    # 데이터 전처리
+    preprocessed_chat_messages = [preprocess_text(text) for text in chat_messages]
 
-        # TF-IDF 벡터화
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(preprocessed_chat_messages + preprocessed_movie_info)
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 수행 시간 계산
+    print(f"데이터 전처리 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
-        # 채팅 메시지와 영화 정보 간의 코사인 유사도 계산
-        similarity_matrix = cosine_similarity(tfidf_matrix)
+    start_time = time.time()  # 시작 시간 기록
+    # TF-IDF 벡터화
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(preprocessed_chat_messages + pre_item_data)
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 수행 시간 계산
+    print(f"TF-IDF 벡터화 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
-        # 유사도가 높은 영화 추천
-        chat_similarity_scores = similarity_matrix[:-len(movie_info), -len(movie_info):]
-        top_similar_indices = chat_similarity_scores.argmax(axis=1)
+    start_time = time.time()  # 시작 시간 기록
+    # 채팅 메시지와 영화 정보 간의 코사인 유사도 계산
+    similarity_matrix = cosine_similarity(tfidf_matrix)
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 수행 시간 계산
+    print(f"코사인 유사도 계산 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
-        recommended_movies[member_id] = [movie_info[idx] for idx in top_similar_indices]
+    # 유사도가 높은 영화 추천
+    chat_similarity_scores = similarity_matrix[:-len(movie_info), -len(movie_info):]
+    top_similar_indices = chat_similarity_scores.argmax(axis=1)
+    print(chat_similarity_scores)
+    print(top_similar_indices)
 
-        # 중복 영화 제거
-        recommended_movies[member_id] = remove_duplicate_movies(recommended_movies[member_id])
+    recommended_movies = [movie_info[idx] for idx in top_similar_indices]
+
+    # 중복 영화 제거
+    recommended_movies = remove_duplicate_movies(recommended_movies)
 
     return recommended_movies
-
-if __name__ == "__main__":
-    item_data = get_item_data()
-    chat_data = get_chat_data()
-
-    recommended_movies = recommend_movies_for_members(item_data, chat_data)
-
-    for member_id, movies in recommended_movies.items():
-        print(f"{member_id} 멤버에게 추천하는 영화:")
-        for movie in movies:
-            print(movie)
