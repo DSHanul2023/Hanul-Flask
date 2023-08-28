@@ -108,6 +108,8 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     # 각 멤버의 채팅 메시지를 저장할 딕셔너리
     member_chat_messages = {}
 
+    member_ids = set(chat[3] for chat in chat_data)
+
     # 채팅 데이터를 멤버별로 그룹화하여 처리
     for chat in chat_data:
         member_id, message = chat[3], chat[1]
