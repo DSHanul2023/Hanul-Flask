@@ -7,3 +7,5 @@ kobert_state_ver1.pt
 
 *.pyc
 *.iml
+*.pt
+*.pth
