@@ -1,4 +1,4 @@
-from get_data import get_item_data, get_chat_data, recommend_movies_for_members,minichatmovie
+from get_data import get_item_data, get_chat_data, recommend_movies_for_members,minichatmovie, remove_duplicate_movies
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
@@ -94,16 +94,25 @@ def minichatsurvey():
 
         # 클라이언트에서 전송한 선택 항목을 받아옴
         selected_emotions = request_data.get('selectedItems', [])
+        selected_genres = request_data.get('genres', [])  # 새로 추가된 부분
 
-        # 감정 키워드에 해당하는 아이템을 가져오는 함수 호출
-        recommended_movies = minichatmovie(selected_emotions)
-        print("Recommended Movies:", recommended_movies)  # 이 부분을 추가
+        # 감정 키워드에 해당하는 영화 추천
+        recommended_movies_emotion = minichatmovie(selected_emotions)
+
+        # 장르 키워드에 해당하는 영화 추천 (새로 추가된 부분)
+        recommended_movies_genre = minichatmovie(selected_genres)
+
+        # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
+        final_recommended_movies = recommended_movies_emotion + recommended_movies_genre
+
+        # 중복 영화 제거
+        final_recommended_movies = remove_duplicate_movies(final_recommended_movies)
 
         # 추천된 영화를 JSON 형태로 반환
-        return jsonify({"recommended_movies": recommended_movies})
+        return jsonify({"recommended_movies": final_recommended_movies})
 
     except Exception as e:
         return jsonify({"error": str(e)})
-
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
