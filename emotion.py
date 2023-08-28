@@ -1,6 +1,8 @@
 # 감정 분류 추론 모델 로드
-# pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
-PATH = 'C:/Users/user/Downloads/kobert_state_ver2.pt'
+# pip install "git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf" #쌍따옴표로 하니까 됨
+
+PATH = 'kobert_state_ver2.pt'
+
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
@@ -8,6 +10,23 @@ import gluonnlp as nlp
 import numpy as np
 from kobert_tokenizer import KoBERTTokenizer
 from transformers import BertModel
+
+from transformers import AdamW
+from transformers.optimization import get_cosine_schedule_with_warmup
+
+device = torch.device('cpu')
+tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
+bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
+vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
+
+max_len = 128
+batch_size = 10
+warmup_ratio = 0.1
+num_epochs = 5
+max_grad_norm = 1
+log_interval = 200
+learning_rate =  5e-5
+
 class BERTClassifier(nn.Module):
     def __init__(self,
                 bert,
@@ -91,17 +110,18 @@ class BERTDataset(Dataset):
         return (self.sentences[i] + (self.labels[i], ))
     def __len__(self):
         return (len(self.labels))
-tokenizer = KoBERTTokenizer.from_pretrained('skt/kobert-base-v1')
-bertmodel = BertModel.from_pretrained('skt/kobert-base-v1', return_dict=False)
-vocab = nlp.vocab.BERTVocab.from_sentencepiece(tokenizer.vocab_file, padding_token='[PAD]')
-max_len = 128
-batch_size = 10
-warmup_ratio = 0.1
-num_epochs = 5
-max_grad_norm = 1
-log_interval = 200
-learning_rate =  5e-5
+
+
+# 감정 분류
+
+c_model = BERTClassifier(bertmodel, dr_rate=0.5).to(device)
+torch.save(c_model.state_dict(), PATH)
+c_model.load_state_dict(torch.load(PATH, map_location='cpu'))
+c_model.eval()
+
+
 device = torch.device('cpu')
+
 
 def predict(predict_sentence):
     c_model = torch.load(PATH, map_location=torch.device('cpu'))
@@ -146,4 +166,5 @@ def predict(predict_sentence):
             elif np.argmax(logits) == 7:
                 predictions.append("공포")
 
-    return predictions
+        # print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
+        return predictions

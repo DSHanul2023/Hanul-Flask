@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 from pytorch_lightning import LightningModule, Trainer
 from kogpt2_transformers import get_kogpt2_model
-
+import time
 
 class DialogKoGPT2(nn.Module):
   def __init__(self):
@@ -72,7 +72,11 @@ class DialogKoGPT2Wrapper(LightningModule):
 
 
         with torch.no_grad():
+            start_time = time.time()  # 시작 시간 기록
             sample_output = self.forward(input_ids)
+            end_time = time.time()  # 종료 시간 기록
+            elapsed_time = end_time - start_time  # 수행 시간 계산
+            print(f"inference 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
         answer = self.tokenizer.decode(sample_output[0].tolist()[len(tokenized_indexs) + 1:], skip_special_tokens=True)
         second_dot_index = answer.find('.', answer.find('.') + 1)
