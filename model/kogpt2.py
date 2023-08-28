@@ -1,4 +1,6 @@
 import torch.nn as nn
+import torch
+from pytorch_lightning import LightningModule, Trainer
 from kogpt2_transformers import get_kogpt2_model
 
 
@@ -37,3 +39,44 @@ class DialogKoGPT2(nn.Module):
 
     return outputs
 
+class DialogKoGPT2Wrapper(LightningModule):
+    def __init__(self, checkpoint_path, tokenizer):
+        super(DialogKoGPT2Wrapper, self).__init__()
+        self.checkpoint_path = checkpoint_path
+        self.tokenizer = tokenizer
+        self.model = None
+        self.device_type = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+    def forward(self, input_ids):
+        return self.model.generate(input_ids=input_ids, max_length=50)
+
+    def load_model(self):
+        try:
+            checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
+            self.model = DialogKoGPT2().to(self.device)
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.model.eval()
+        except Exception as e:
+            print(f"Failed to load the model: {e}")
+            self.model = None
+
+    def inference(self, question):
+        if self.model is None:
+            return "네, 듣고있으니 더 말씀해주세요."
+
+        tokenized_indexs = self.tokenizer.encode(question)
+        input_ids = torch.tensor(
+            [self.tokenizer.bos_token_id, ] + tokenized_indexs + [self.tokenizer.eos_token_id]).unsqueeze(0).to(
+            self.device)
+
+
+        with torch.no_grad():
+            sample_output = self.forward(input_ids)
+
+        answer = self.tokenizer.decode(sample_output[0].tolist()[len(tokenized_indexs) + 1:], skip_special_tokens=True)
+        second_dot_index = answer.find('.', answer.find('.') + 1)
+        if second_dot_index != -1:
+            answer = answer[:second_dot_index + 1]
+
+        return answer
