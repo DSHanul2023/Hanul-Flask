@@ -58,8 +58,16 @@ class DialogKoGPT2Wrapper(LightningModule):
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
         except Exception as e:
-            print(f"Failed to load the model: {e}")
-            self.model = None
+            try:
+                checkpoint = torch.load(self.checkpoint_path)
+                self.model = DialogKoGPT2()
+                self.model.load_state_dict(checkpoint,strict=False)
+                self.model.to(self.device_type)
+                self.model.eval()
+            except Exception as e:
+                print(f"Failed to load the model: {e}")
+                self.model = None
+
 
     def inference(self, question):
         if self.model is None:

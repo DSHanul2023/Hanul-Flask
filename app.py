@@ -5,7 +5,7 @@ from get_data import get_item_data, get_chat_data, recommend_movies_for_members,
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
-from model.kogpt2 import DialogKoGPT2Wrapper
+from model.kogpt2 import DialogKoGPT2Wrapper,DialogKoGPT2
 from emotion import BERTClassifier,predict
 
 root_path = '.'
@@ -24,6 +24,11 @@ dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 dialog_model.load_model()
 print("load_model 실행됨")
 
+global loaded_quantized_model
+loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+loaded_quantized_model.load_model()
+print("loaded_quantized_model 실행됨")
+
 # movie detail 미리 전처리 - 전처리 속도 개선
 global pre_item_data
 pre_item_data = None
@@ -37,11 +42,11 @@ print("preprocess_item 실행됨")
 # 모델 
 @app.route('/process2',methods=['POST'])
 def process2_data():
-    loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
-    loaded_quantized_model.load_model()
+    global loaded_quantized_model
+
     request_data = request.json
     question = request_data.get('question', '')
-    answer = dialog_model.inference(question)
+    answer = loaded_quantized_model.inference(question)
     return answer
 
 

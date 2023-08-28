@@ -124,8 +124,6 @@ device = torch.device('cpu')
 
 
 def predict(predict_sentence):
-    c_model = torch.load(PATH, map_location=torch.device('cpu'))
-    c_model.eval()
     data = [predict_sentence, '0']
     dataset_another = [data]
 
@@ -167,4 +165,4 @@ def predict(predict_sentence):
                 predictions.append("공포")
 
         # print(">> 입력하신 내용에서 " + test_eval[0] + " 느껴집니다.")
-        return predictions
+        return predictions[0]
