@@ -18,8 +18,6 @@ save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
 PATH = 'C:/Users/82109/Desktop/졸업 프로젝트/Flask-hanul/model/kobert_state_ver2.pt'
 
-app = Flask(__name__)
-
 tokenizer = get_kogpt2_tokenizer()
 
 @app.route('/process', methods=['POST'])
@@ -94,12 +92,12 @@ def minichatsurvey():
 
         # 클라이언트에서 전송한 선택 항목을 받아옴
         selected_emotions = request_data.get('selectedItems', [])
-        selected_genres = request_data.get('genres', [])  # 새로 추가된 부분
+        selected_genres = request_data.get('genres', []) 
 
         # 감정 키워드에 해당하는 영화 추천
         recommended_movies_emotion = minichatmovie(selected_emotions)
 
-        # 장르 키워드에 해당하는 영화 추천 (새로 추가된 부분)
+        # 장르 키워드에 해당하는 영화 추천
         recommended_movies_genre = minichatmovie(selected_genres)
 
         # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
