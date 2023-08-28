@@ -1,33 +1,59 @@
 from flask import Flask, request, jsonify
-from get_data import get_item_data, get_chat_data, recommend_movies_for_members
+from kobert_tokenizer import KoBERTTokenizer
+
+from get_data import get_item_data, get_chat_data, recommend_movies_for_members, preprocess_movie_info
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
-from model.kogpt2 import DialogKoGPT2, DialogKoGPT2Wrapper
-
+from model.kogpt2 import DialogKoGPT2Wrapper
+from emotion import BERTClassifier,predict
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
-
-PATH = 'C:/Users/82109/Desktop/졸업 프로젝트/Flask-hanul/model/kobert_state_ver2.pt'
+save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
+ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
 
-@app.route('/process', methods=['POST'])
-def process_data():
-    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
-    dialog_model.load_model()
+
+# dialog_model 미리 로드 - load_model 속도 개선
+global dialog_model
+dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
+dialog_model.load_model()
+print("load_model 실행됨")
+
+# movie detail 미리 전처리 - 전처리 속도 개선
+global pre_item_data
+pre_item_data = None
+global item_data
+item_data = get_item_data()
+movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
+               'image_url': item[5], 'member_id': item[6]} for item in item_data]
+pre_item_data = preprocess_movie_info(movie_info)
+print("preprocess_item 실행됨")
+
+# 모델 
+@app.route('/process2',methods=['POST'])
+def process2_data():
+    loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+    loaded_quantized_model.load_model()
     request_data = request.json
     question = request_data.get('question', '')
     answer = dialog_model.inference(question)
-    response_data = {
-        "answer": answer
-    }
+    return answer
 
-    # return response_data
+
+@app.route('/process', methods=['POST'])
+def process_data():
+    global dialog_model
+
+    request_data = request.json
+    question = request_data.get('question', '')
+    answer = dialog_model.inference(question)
+
     return answer
 
 @app.route('/get_data', methods=['GET'])
@@ -54,31 +80,44 @@ def get_itemdata():  # 함수 이름 변경
 
     return jsonify({"item_data": item_data})
 
-@app.route('/movie', methods=['GET'])
+import time
+@app.route('/movie', methods=['POST'])
 def recommend_movies():
-    item_data = get_item_data()
-    chat_data = get_chat_data()
+    global pre_item_data
+    global item_data
+    request_data = request.json
+    member_id = request_data.get('member_id', '')
 
-    recommended_movies = recommend_movies_for_members(item_data, chat_data)
+    chat_data = get_chat_data(member_id)
+
+    start_time = time.time()  # 시작 시간 기록
+    recommended_movies = recommend_movies_for_members(pre_item_data, item_data, chat_data)
+    end_time = time.time()  # 종료 시간 기록
+    elapsed_time = end_time - start_time  # 수행 시간 계산
+    print(f"recommend_movies 총 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
     return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
-def infer_emotion():
+
+def emotion():
     request_data = request.json
-    text = request_data.get('text', '')
+    sentence = request_data.get('sentence', '')
+    result = predict(sentence)
+    print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
+    return result
 
-    # 감정 분류 모델과 토크나이저 로드
-    c_model, c_tokenizer = load_c_model(PATH)
 
-    # 감정 분류 예측
-    predicted_emotions = load_and_predict(text, c_model, c_tokenizer)
 
+def process_emotion():
+    request_data = request.json
+    question = request_data.get('question', '')
+    result = predict(question)
     response_data = {
-        "predicted_emotions": predicted_emotions
+        "predicted_emotion": result
     }
-
     return jsonify(response_data)
-
 if __name__ == '__main__':
+    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
+    dialog_model.load_model()
     app.run()
