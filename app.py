@@ -18,7 +18,6 @@ ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
 
-
 # dialog_model 미리 로드 - load_model 속도 개선
 global dialog_model
 dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
@@ -36,14 +35,14 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 
 # 모델 
-@app.route('/process2',methods=['POST'])
-def process2_data():
-    loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
-    loaded_quantized_model.load_model()
-    request_data = request.json
-    question = request_data.get('question', '')
-    answer = dialog_model.inference(question)
-    return answer
+# @app.route('/process2',methods=['POST'])
+# def process2_data():
+#     loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+#     loaded_quantized_model.load_model()
+#     request_data = request.json
+#     question = request_data.get('question', '')
+#     answer = dialog_model.inference(question)
+#     return answer
 
 
 @app.route('/process', methods=['POST'])
@@ -106,8 +105,6 @@ def emotion():
     result = predict(sentence)
     print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
     return result
-
-
 
 def process_emotion():
     request_data = request.json
