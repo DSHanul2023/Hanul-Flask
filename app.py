@@ -1,12 +1,12 @@
-from flask import Flask, request, jsonify
-from get_data import get_item_data, get_chat_data, recommend_movies_for_members
+from get_data import get_item_data, get_chat_data, recommend_movies_for_members,minichatmovie
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2, DialogKoGPT2Wrapper
 from emotion import load_and_predict, load_c_model
 import json
-from flask_cors import CORS 
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
@@ -86,20 +86,21 @@ def infer_emotion():
 
     return jsonify(response_data)
 
-# 사용자의 선택 항목을 받아와 영화 추천을 처리하는 엔드포인트
+# 사용자의 선택 항목을 받아와 영화 추천을 처리
 @app.route('/survey', methods=['POST'])
 def minichatsurvey():
     try:
-        request_data = request.json
+        request_data = request.get_json()
 
         # 클라이언트에서 전송한 선택 항목을 받아옴
-        selected_items = request_data.get('selectedItems', [])
+        selected_emotions = request_data.get('selectedItems', [])
 
-        # 선택 항목을 JSON 형식으로 변환하여 Flask 서버에 전송
-        selected_items_json = json.dumps(selected_items)
+        # 감정 키워드에 해당하는 아이템을 가져오는 함수 호출
+        recommended_movies = minichatmovie(selected_emotions)
+        print("Recommended Movies:", recommended_movies)  # 이 부분을 추가
 
-        # 선택 항목을 응답으로 출력
-        return jsonify({"selectedItems": selected_items_json})
+        # 추천된 영화를 JSON 형태로 반환
+        return jsonify({"recommended_movies": recommended_movies})
 
     except Exception as e:
         return jsonify({"error": str(e)})
