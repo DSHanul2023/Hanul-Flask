@@ -1,19 +1,22 @@
 from flask import Flask, request, jsonify
+from kobert_tokenizer import KoBERTTokenizer
 
 from get_data import get_item_data, get_chat_data, recommend_movies_for_members, preprocess_movie_info
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2Wrapper
-from emotion import predict
+from emotion import BERTClassifier,predict
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
-
+save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 app = Flask(__name__)
+ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
+
 
 # dialog_model 미리 로드 - load_model 속도 개선
 global dialog_model
@@ -30,6 +33,17 @@ movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'ti
                'image_url': item[5], 'member_id': item[6]} for item in item_data]
 pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
+
+# 모델 
+@app.route('/process2',methods=['POST'])
+def process2_data():
+    loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+    loaded_quantized_model.load_model()
+    request_data = request.json
+    question = request_data.get('question', '')
+    answer = dialog_model.inference(question)
+    return answer
+
 
 @app.route('/process', methods=['POST'])
 def process_data():
@@ -84,6 +98,7 @@ def recommend_movies():
     return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
+
 def emotion():
     request_data = request.json
     sentence = request_data.get('sentence', '')
@@ -93,6 +108,15 @@ def emotion():
 
 
 
+def process_emotion():
+    request_data = request.json
+    question = request_data.get('question', '')
+    result = predict(question)
+    response_data = {
+        "predicted_emotion": result
+    }
+    return jsonify(response_data)
 if __name__ == '__main__':
+    dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
+    dialog_model.load_model()
     app.run()
-
