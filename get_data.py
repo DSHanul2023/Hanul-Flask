@@ -36,12 +36,12 @@ def get_item_data():
     return item_data
 
 # "chat" 테이블 데이터 가져오기
-def get_chat_data():
+def get_chat_data(member_id):
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
-    query = "SELECT * FROM chat"
-    cursor.execute(query)
+    query = "SELECT * FROM chat WHERE member_id = %s"
+    cursor.execute(query, (member_id,))  # 매개변수를 통해 SQL 쿼리 파라미터 전달
 
     chat_data = cursor.fetchall()
 
@@ -94,12 +94,16 @@ def remove_duplicate_movies(movies):
 
     return unique_movies
 
-def recommend_movies_for_members(item_data, chat_data):
-    # 영화 정보 데이터
-    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6]} for item in item_data]
+def preprocess_movie_info(movie_info):
+    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
+    return preprocessed_movie_info
 
-    # 고유한 멤버 ID 가져오기
-    member_ids = set(chat[3] for chat in chat_data)
+import time
+
+def recommend_movies_for_members(pre_item_data, item_data, chat_data):
+    # 영화 정보 데이터
+    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
+                   'image_url': item[5], 'member_id': item[6]} for item in item_data]
 
     # 각 멤버의 채팅 메시지를 저장할 딕셔너리
     member_chat_messages = {}
