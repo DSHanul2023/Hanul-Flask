@@ -1,19 +1,25 @@
 from flask import Flask, request, jsonify
 from kobert_tokenizer import KoBERTTokenizer
 
-from get_data import get_item_data, get_chat_data, recommend_movies_for_members, preprocess_movie_info
+from get_data import get_item_data, get_chat_data, preprocess_movie_info
+from minichat import minichatmovie
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
-from model.kogpt2 import DialogKoGPT2Wrapper
+from model.kogpt2 import DialogKoGPT2Wrapper,DialogKoGPT2
 from emotion import BERTClassifier,predict
+import json
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
+
 # save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
+CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
@@ -23,6 +29,11 @@ global dialog_model
 dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 dialog_model.load_model()
 print("load_model 실행됨")
+
+global loaded_quantized_model
+loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+loaded_quantized_model.load_model()
+print("loaded_quantized_model 실행됨")
 
 # movie detail 미리 전처리 - 전처리 속도 개선
 global pre_item_data
@@ -35,15 +46,15 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 
 # 모델 
-# @app.route('/process2',methods=['POST'])
-# def process2_data():
-#     loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
-#     loaded_quantized_model.load_model()
-#     request_data = request.json
-#     question = request_data.get('question', '')
-#     answer = dialog_model.inference(question)
-#     return answer
 
+#@app.route('/process2',methods=['POST'])
+#def process2_data():
+    #global loaded_quantized_model
+
+    #request_data = request.json
+    #question = request_data.get('question', '')
+    #answer = loaded_quantized_model.inference(question)
+    #return answer
 
 @app.route('/process', methods=['POST'])
 def process_data():
@@ -114,6 +125,39 @@ def process_emotion():
         "predicted_emotion": result
     }
     return jsonify(response_data)
+
+
+
+# 사용자의 선택 항목을 받아와 영화 추천을 처리
+@app.route('/survey', methods=['POST'])
+def minichatsurvey():
+    try:
+        request_data = request.get_json()
+
+        # 클라이언트에서 전송한 선택 항목을 받아옴
+        selected_emotions = request_data.get('selectedItems', [])
+        selected_genres = request_data.get('genres', [])
+
+        # 감정 키워드에 해당하는 영화 추천
+        recommended_movies_emotion = minichatmovie(selected_emotions)
+        print(recommended_movies_emotion)
+
+        # 장르 키워드에 해당하는 영화 추천
+        recommended_movies_genre = minichatmovie(selected_genres)
+        print(recommended_movies_genre)
+
+        # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
+        #final_recommended_movies = recommended_movies_emotion + recommended_movies_genre
+
+        # 중복 영화 제거
+        #final_recommended_movies = remove_duplicate_movies(final_recommended_movies)
+        final_recommended_movies = recommended_movies_genre if recommended_movies_genre else recommended_movies_emotion
+
+        # 추천된 영화를 JSON 형태로 반환
+        return jsonify({"recommended_movies": final_recommended_movies})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
     app.run()
