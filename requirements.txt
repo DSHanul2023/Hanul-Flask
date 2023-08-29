@@ -8,3 +8,15 @@ flask
 flask_restful
 kogpt2_transformers
 kobert_transformers
+flask_cors
+nltk
+scikit-learn
+konlpy
+gluonnlp==0.8.0
+numpy==1.23.5
+mysql-connector-python
+mxnet -f https://dist.mxnet.io/python/cpu
+kobert-tokenizer @ git+https://github.com/SKTBrain/KoBERT.git@47a69af87928fc24e20f571fe10c3cc9dd9af9a3#subdirectory=kobert_hf
+mecab-ko-dic-msvc
+mecab-ko-msvc
+pytorch_lightning
