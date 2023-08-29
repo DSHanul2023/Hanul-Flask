@@ -1,10 +1,4 @@
-import sys
-sys.path.append(r'')
-
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from konlpy.tag import Okt, Mecab
-import time
+from konlpy.tag import Mecab
 import mysql.connector
 
 # MySQL 데이터베이스 연결 설정
