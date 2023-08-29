@@ -141,9 +141,11 @@ def minichatsurvey():
 
         # 감정 키워드에 해당하는 영화 추천
         recommended_movies_emotion = minichatmovie(selected_emotions)
+        print(recommended_movies_emotion)
 
         # 장르 키워드에 해당하는 영화 추천
         recommended_movies_genre = minichatmovie(selected_genres)
+        print(recommended_movies_genre)
 
         # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
         #final_recommended_movies = recommended_movies_emotion + recommended_movies_genre
