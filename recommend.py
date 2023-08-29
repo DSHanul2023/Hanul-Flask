@@ -16,6 +16,7 @@ db_config = {
     "port": 3306          # MySQL 포트 번호
 }
 
+
 # 추천 영화 중 중복 제거
 def remove_duplicate_movies(movies):
     unique_movies = []
@@ -160,6 +161,7 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     chat_messages = member_chat_messages.get(member_id, [])
 
     start_time = time.time()  # 시작 시간 기록
+
     # 데이터 전처리
     preprocessed_chat_messages = [preprocess_text(text) for text in chat_messages]
 
@@ -168,6 +170,7 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     print(f"데이터 전처리 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
     start_time = time.time()  # 시작 시간 기록
+
     # TF-IDF 벡터화
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(preprocessed_chat_messages + pre_item_data)
@@ -176,6 +179,7 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     print(f"TF-IDF 벡터화 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
     start_time = time.time()  # 시작 시간 기록
+
     # 채팅 메시지와 영화 정보 간의 코사인 유사도 계산
     similarity_matrix = cosine_similarity(tfidf_matrix)
     end_time = time.time()  # 종료 시간 기록
