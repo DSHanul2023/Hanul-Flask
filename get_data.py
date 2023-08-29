@@ -52,7 +52,12 @@ def get_view(view):
     cursor.close()
     connection.close()
 
-    return item_data
+
+def preprocess_movie_info(movie_info):
+    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
+    return preprocessed_movie_info
+
+
 
 # "chat" 테이블 데이터 가져오기
 def get_chat(member_id):
@@ -68,3 +73,4 @@ def get_chat(member_id):
     connection.close()
 
     return chat_data
+
