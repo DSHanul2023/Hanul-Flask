@@ -63,19 +63,19 @@ def minichatmovie(selected_emotions):
         '기쁨': ['판타지', '모험', '액션'],
         '설렘': ['SF', '모험']
     }
-    
     selected_genres = []
     for emotion in selected_emotions:
         selected_genres.extend(emotion_to_genre.get(emotion, []))
-    
     # 감정 키워드에 해당하는 아이템을 데이터베이스에서 가져오는 로직
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
-
     genre_placeholders = ', '.join(['%s'] * len(selected_genres))
-    query = f"SELECT * FROM item WHERE genre_name IN ({genre_placeholders})"
-    cursor.execute(query.encode('utf8'), tuple(selected_genres))
-    recommended_movies = cursor.fetchall()
+    if selected_genres:
+        query = f"SELECT * FROM item WHERE genre_name IN ({genre_placeholders})"
+        cursor.execute(query.encode('utf8'), tuple(selected_genres))
+        recommended_movies = cursor.fetchall()
+    else:
+        recommended_movies = []
 
     cursor.close()
     conn.close()
