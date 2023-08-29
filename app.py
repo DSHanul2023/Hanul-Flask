@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from kobert_tokenizer import KoBERTTokenizer
-from get_data import get_item_data, get_chat_data, preprocess_movie_info
+from get_data import get_item, get_chat, preprocess_movie_info
 from minichat import minichatmovie
 import torch
 import os
@@ -38,7 +38,7 @@ print("loaded_quantized_model 실행됨")
 global pre_item_data
 pre_item_data = None
 global item_data
-item_data = get_item_data()
+item_data = get_item()
 movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
                'image_url': item[5], 'member_id': item[6]} for item in item_data]
 pre_item_data = preprocess_movie_info(movie_info)
@@ -67,8 +67,8 @@ def process_data():
 
 @app.route('/get_data', methods=['GET'])
 def get_data():
-    item_data = get_item_data()
-    chat_data = get_chat_data()
+    item_data = get_item()
+    chat_data = get_chat()
 
     data = {
         "item_data": item_data,
@@ -79,13 +79,13 @@ def get_data():
 
 @app.route('/chatdata', methods=['GET'])
 def get_chatdata():
-    chat_data = get_chat_data()
+    chat_data = get_chat()
 
     return jsonify({"chat_data": chat_data})
 
 @app.route('/itemdata', methods=['GET'])
 def get_itemdata():  # 함수 이름 변경
-    item_data = get_item_data()
+    item_data = get_item()
 
     return jsonify({"item_data": item_data})
 
