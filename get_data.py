@@ -26,9 +26,8 @@ tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
 def preprocess_text(text):
     words = tagger.nouns(text)
     return ' '.join(words)
-
 # "item" 테이블 데이터 가져오기
-def get_item():
+def get_item_data():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
@@ -76,4 +75,17 @@ def get_chat(member_id):
     connection.close()
 
     return chat_data
+# "chat" 테이블 데이터 가져오기
+def get_chat_data(member_id):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor()
 
+    query = "SELECT * FROM chat WHERE member_id = %s"
+    cursor.execute(query, (member_id,))  # 매개변수를 통해 SQL 쿼리 파라미터 전달
+
+    chat_data = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return chat_data

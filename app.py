@@ -11,6 +11,8 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
+from recommend import recommend_movies_for_members
+
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
@@ -29,10 +31,12 @@ dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 dialog_model.load_model()
 print("load_model 실행됨")
 
-global loaded_quantized_model
-loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
-loaded_quantized_model.load_model()
-print("loaded_quantized_model 실행됨")
+
+# global loaded_quantized_model
+# loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+# loaded_quantized_model.load_model()
+# print("loaded_quantized_model 실행됨")
+
 
 # movie detail 미리 전처리 - 전처리 속도 개선
 global pre_item_data
