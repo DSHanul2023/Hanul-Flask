@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from kobert_tokenizer import KoBERTTokenizer
 
-from get_data import get_item_data, get_chat_data, recommend_movies_for_members, preprocess_movie_info,minichatmovie, remove_duplicate_movies
+from get_data import get_item_data, get_chat_data, preprocess_movie_info
+from minichat import minichatmovie
 import torch
 import os
 from kogpt2_transformers import get_kogpt2_tokenizer
@@ -156,6 +157,6 @@ def minichatsurvey():
 
     except Exception as e:
         return jsonify({"error": str(e)})
-    
+
 if __name__ == '__main__':
     app.run()
