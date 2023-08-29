@@ -1,4 +1,5 @@
 import mysql.connector
+
 # MySQL 데이터베이스 연결 설정
 db_config = {
     "host": "127.0.0.1",  # 호스트 주소
@@ -7,6 +8,7 @@ db_config = {
     "database": "hanuldb",  # 데이터베이스 이름
     "port": 3306          # MySQL 포트 번호
 }
+
 # 미니 챗 영화 추천
 def minichatmovie(selected_emotions):
     # 각 감정에 해당하는 영화 장르 정의
