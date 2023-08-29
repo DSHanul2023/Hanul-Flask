@@ -27,7 +27,7 @@ def preprocess_text(text):
     words = tagger.nouns(text)
     return ' '.join(words)
 # "item" 테이블 데이터 가져오기
-def get_item_data():
+def get_item():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
