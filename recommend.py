@@ -1,5 +1,8 @@
 from emotion import predict
-from get_data import get_chat
+from get_data import get_chat, preprocess_text
+import time
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # 추천 영화 중 중복 제거
 def remove_duplicate_movies(movies):
