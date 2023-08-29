@@ -1,0 +1,14 @@
+__pycache__/get_data.cpython-311.pyc
+checkpoint/kogpt2-wellnesee-auto-regressive.pth
+model/__pycache__/kogpt2.cpython-311.pyc
+venv/
+venvs/
+model/
+kobert_state_ver2.pt
+kobert_state_ver1.pt
+
+*.pyc
+*.iml
+kobert_state_ver3.pt
+kogpt2-wellnesee-auto-regressive.pth
+.idea
