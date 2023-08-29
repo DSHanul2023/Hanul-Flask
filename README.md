@@ -17,3 +17,4 @@
 
 - 가상환경 아래 scripts 폴더에
 [requirements.txt](https://github.com/DSHanul2023/Flask-hanul/files/12460712/requirements.txt)
+- pip install -r requirements.txt
