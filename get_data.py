@@ -1,6 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from konlpy.tag import Okt
+from konlpy.tag import Okt, Mecab
+import time
 import mysql.connector
 
 # MySQL 데이터베이스 연결 설정
@@ -12,16 +13,19 @@ db_config = {
     "port": 3306          # MySQL 포트 번호
 }
 
+
 # KoNLPy의 Okt 객체 생성
-okt = Okt()
+# okt = Okt()
+
+tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
 
 # 텍스트 전처리 및 토큰화 함수
 def preprocess_text(text):
-    words = okt.morphs(text, stem=True)
+    words = tagger.nouns(text)
     return ' '.join(words)
 
 # "item" 테이블 데이터 가져오기
-def get_item_data():
+def get_item():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
@@ -35,8 +39,28 @@ def get_item_data():
 
     return item_data
 
+# "item" 테이블에서 뷰 데이터 가져오기
+def get_view(view):
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor()
+
+    query = f"SELECT * FROM `{view}"
+    cursor.excute(query)
+
+    item_data = cursor.fechall()
+
+    cursor.close()
+    connection.close()
+
+
+def preprocess_movie_info(movie_info):
+    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
+    return preprocessed_movie_info
+
+
+
 # "chat" 테이블 데이터 가져오기
-def get_chat_data(member_id):
+def get_chat(member_id):
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
@@ -50,11 +74,3 @@ def get_chat_data(member_id):
 
     return chat_data
 
-def preprocess_movie_info(movie_info):
-    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
-    return preprocessed_movie_info
-
-
-if __name__ == "__main__":
-    item_data = get_item_data()
-    chat_data = get_chat_data()

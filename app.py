@@ -16,13 +16,13 @@ root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
-save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
+# save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
+
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
-
 
 # dialog_model 미리 로드 - load_model 속도 개선
 global dialog_model
@@ -46,15 +46,15 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 
 # 모델 
-@app.route('/process2',methods=['POST'])
-def process2_data():
-    global loaded_quantized_model
 
-    request_data = request.json
-    question = request_data.get('question', '')
-    answer = loaded_quantized_model.inference(question)
-    return answer
+#@app.route('/process2',methods=['POST'])
+#def process2_data():
+    #global loaded_quantized_model
 
+    #request_data = request.json
+    #question = request_data.get('question', '')
+    #answer = loaded_quantized_model.inference(question)
+    #return answer
 
 @app.route('/process', methods=['POST'])
 def process_data():
@@ -117,8 +117,6 @@ def emotion():
     print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
     return result
 
-
-
 def process_emotion():
     request_data = request.json
     question = request_data.get('question', '')
@@ -127,6 +125,7 @@ def process_emotion():
         "predicted_emotion": result
     }
     return jsonify(response_data)
+
 
 
 # 사용자의 선택 항목을 받아와 영화 추천을 처리
