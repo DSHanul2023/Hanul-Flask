@@ -182,3 +182,4 @@ def predict(predict_sentence):
                 test_eval.append("공포가")
 
         return test_eval[0]
+

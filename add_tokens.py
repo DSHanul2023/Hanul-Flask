@@ -1,6 +1,6 @@
 import sys
-# sys.path.append(r'C:\2023-1 Workspace\한울_2023(졸업 프로젝트)\Flask-hanul\venvs\venv\Lib\site-packages')
-sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
+sys.path.append(r'C:\2023-1 Workspace\hanul\Flask-hanul\venvs\venv\Lib\site-packages')
+# sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
 from konlpy.tag import Mecab
 import mysql.connector
 
@@ -44,4 +44,3 @@ if __name__ == "__main__":
     conn.commit()
     cursor.close()
     conn.close()
-
