@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from kobert_tokenizer import KoBERTTokenizer
-
 from get_data import get_item_data, get_chat_data, preprocess_movie_info
 from minichat import minichatmovie
 import torch
@@ -31,7 +30,7 @@ dialog_model.load_model()
 print("load_model 실행됨")
 
 global loaded_quantized_model
-loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
+loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 loaded_quantized_model.load_model()
 print("loaded_quantized_model 실행됨")
 
@@ -89,24 +88,6 @@ def get_itemdata():  # 함수 이름 변경
     item_data = get_item_data()
 
     return jsonify({"item_data": item_data})
-
-import time
-@app.route('/movie', methods=['POST'])
-def recommend_movies():
-    global pre_item_data
-    global item_data
-    request_data = request.json
-    member_id = request_data.get('member_id', '')
-
-    chat_data = get_chat_data(member_id)
-
-    start_time = time.time()  # 시작 시간 기록
-    recommended_movies = recommend_movies_for_members(pre_item_data, item_data, chat_data)
-    end_time = time.time()  # 종료 시간 기록
-    elapsed_time = end_time - start_time  # 수행 시간 계산
-    print(f"recommend_movies 총 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
-
-    return jsonify(recommended_movies)
 
 @app.route('/emotion', methods=['POST'])
 
