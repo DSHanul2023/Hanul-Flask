@@ -31,7 +31,6 @@ dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 dialog_model.load_model()
 print("load_model 실행됨")
 
-
 # global loaded_quantized_model
 # loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
 # loaded_quantized_model.load_model()
