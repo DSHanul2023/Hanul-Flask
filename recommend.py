@@ -74,13 +74,17 @@ def calc_weight(item_data, chat_data):
     vectorizer = TfidfVectorizer()
     vectorized_data = vectorizer.fit_transform(tokens)
     
-    # 오류나는 부분
-    cosine_similarities = cosine_similarity(vectorizer.fit_transform(user_says), vectorized_data).flatten()
+    # 사용자 발화 벡터를 만들어서 코사인 유사도 계산
+    user_says_list = [user_says]
+    cosine_similarities = cosine_similarity(vectorizer.transform(user_says_list), vectorized_data).flatten()
     
     tokens.pop()
     
     for idx, sim in enumerate(cosine_similarities):
-        movie_info[idx]['cosine_similarity'] = sim
+        if idx < len(movie_info):
+            movie_info[idx]['cosine_similarity'] = sim
+        else:
+            print(f"Index {idx} is out of range for movie_info list.")
     
     return movie_info
 
@@ -124,7 +128,10 @@ def recommendation(user_id):
     recommend_movies = calc_weight(item_data, user_says)
 
     for movie in recommend_movies:
-        print(movie)
+        print(f"Title: {movie['title']}")
+        print(f"Description: {movie['description']}")
+        print(f"Cosine Similarity: {movie.get('cosine_similarity', 'N/A')}")
+        print("\n")
 
     return recommend_movies
 
