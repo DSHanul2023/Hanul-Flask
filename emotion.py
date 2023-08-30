@@ -3,7 +3,7 @@
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
 # pip install "git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf" #쌍따옴표로 하니까 됨
 
-PATH = 'kobert_state_ver3.pt'
+PATH = r'C:\Welover\Flask-hanul\kobert_state_ver3.pt'
 
 import torch
 from torch import nn
@@ -159,27 +159,28 @@ def predict(predict_sentence):
 
         out = c_model(token_ids, valid_length, segment_ids)
 
+        emotion_label = ["분노" ,"슬픔", "기쁨", "걱정", "불안감", "중립", "우울감", "공포감"]
+
         test_eval = []
         for i in out:
             logits = i
             logits = logits.detach().cpu().numpy()
 
             if np.argmax(logits) == 0:
-                test_eval.append("분노가")
+                test_eval.append(0)
             elif np.argmax(logits) == 1:
-                test_eval.append("슬픔이")
+                test_eval.append(1)
             elif np.argmax(logits) == 2:
-                test_eval.append("기쁨이")
+                test_eval.append(2)
             elif np.argmax(logits) == 3:
-                test_eval.append("걱정이")
+                test_eval.append(3)
             elif np.argmax(logits) == 4:
-                test_eval.append("불안감이")
+                test_eval.append(4)
             elif np.argmax(logits) == 5:
-                test_eval.append("중립이")
+                test_eval.append(5)
             elif np.argmax(logits) == 6:
-                test_eval.append("우울감이")
+                test_eval.append(6)
             elif np.argmax(logits) == 7:
-                test_eval.append("공포가")
+                test_eval.append(7)
 
         return test_eval[0]
-
