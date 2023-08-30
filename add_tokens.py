@@ -1,5 +1,5 @@
 import sys
-sys.path.append(r'C:\2023-1 Workspace\hanul\Flask-hanul\venvs\venv\Lib\site-packages')
+# sys.path.append(r'C:\2023-1 Workspace\hanul\Flask-hanul\venvs\venv\Lib\site-packages')
 # sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
 from konlpy.tag import Mecab
 import mysql.connector
@@ -30,6 +30,12 @@ if __name__ == "__main__":
     cursor.execute(query.encode('utf8'))
     results = cursor.fetchall()
 
+
+    query = "ALTER TABLE item DROP COLUMN tokens;"
+    cursor.execute(query.encode('utf8'))
+
+    query = "ALTER TABLE item ADD tokens LONGTEXT"
+    cursor.execute(query.encode('utf8'))
 
     # 토큰화 및 'token' 열 생성
     for title, detail in results:

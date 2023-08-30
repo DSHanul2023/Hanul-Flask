@@ -11,6 +11,8 @@ from emotion import BERTClassifier,predict
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from recommend import create_view
+from add_tokens import mecab_preprocess
 
 from recommend import recommend_movies_for_members
 
@@ -38,17 +40,22 @@ print("load_model 실행됨")
 # print("loaded_quantized_model 실행됨")
 
 # movie detail 미리 전처리 - 전처리 속도 개선
-global pre_item_data
-pre_item_data = None
-global item_data
-item_data = get_item_data()
-movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
-               'image_url': item[5], 'member_id': item[6]} for item in item_data]
-pre_item_data = preprocess_movie_info(movie_info)
-print("preprocess_item 실행됨")
+# global pre_item_data
+# pre_item_data = None
+# global item_data
+# item_data = get_item_data()
+# movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
+#                'image_url': item[5], 'member_id': item[6]} for item in item_data]
+# pre_item_data = preprocess_movie_info(movie_info)
+# print("preprocess_item 실행됨")
 
-# 모델 
+# 영화 데이터 토큰화
+mecab_preprocess()
 
+# 감정 뷰 생성
+create_view()
+
+# 모델
 #@app.route('/process2',methods=['POST'])
 #def process2_data():
     #global loaded_quantized_model

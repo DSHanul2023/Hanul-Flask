@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r'')
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from konlpy.tag import Okt, Mecab
@@ -13,7 +16,6 @@ db_config = {
     "port": 3306          # MySQL 포트 번호
 }
 
-
 # KoNLPy의 Okt 객체 생성
 # okt = Okt()
 
@@ -23,8 +25,13 @@ tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
 def preprocess_text(text):
     words = tagger.nouns(text)
     return ' '.join(words)
+# 영화 정보 전처리 함수
+def preprocess_movie_info(movie_info):
+    preprocessed_movie_info = [preprocess_text(f"{info['title']} {info['description']} {info['genre']}") for info in movie_info]
+    return preprocessed_movie_info
+
 # "item" 테이블 데이터 가져오기
-def get_item_data():
+def get_item():
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
@@ -43,13 +50,15 @@ def get_view(view):
     connection = mysql.connector.connect(**db_config)
     cursor = connection.cursor()
 
-    query = f"SELECT * FROM `{view}"
-    cursor.excute(query)
+    query = f"SELECT * FROM `{view}`"
+    cursor.execute(query)
 
-    item_data = cursor.fechall()
+    item_data = cursor.fetchall()
 
     cursor.close()
     connection.close()
+
+    return item_data
 
 
 def preprocess_movie_info(movie_info):
@@ -71,18 +80,9 @@ def get_chat(member_id):
     cursor.close()
     connection.close()
 
-    return chat_data
-# "chat" 테이블 데이터 가져오기
-def get_chat_data(member_id):
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor()
+    preprocessed_chat_data = []
 
-    query = "SELECT * FROM chat WHERE member_id = %s"
-    cursor.execute(query, (member_id,))  # 매개변수를 통해 SQL 쿼리 파라미터 전달
+    for chat in chat_data:
+        preprocessed_chat_data.append(chat[1])
 
-    chat_data = cursor.fetchall()
-
-    cursor.close()
-    connection.close()
-
-    return chat_data
+    return preprocessed_chat_data
