@@ -258,6 +258,7 @@ if __name__ == "__main__":
     recommendation('a12334')
 
 '''
+
 def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     # 영화 정보 데이터
     movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6], 'tokens': item[7]} for item in item_data]
@@ -317,4 +318,8 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
 
     return recommended_movies
 '''
+
+if __name__ == "__main__":
+    # create_view()
+    recommendation('402899838a23ffb6018a2400f47504f6')
 
