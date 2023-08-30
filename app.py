@@ -3,7 +3,7 @@ from get_data import get_item, get_chat
 from add_tokens import mecab_preprocess
 from minichat import minichatmovie
 import os
-from recommend import create_view
+from recommend import create_view, recommendation
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2Wrapper
 from emotion import predict
@@ -19,6 +19,7 @@ save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
@@ -47,7 +48,7 @@ print("preprocess_item 실행됨")
 '''
 
 # 감정 뷰 생성
-create_view()
+# create_view()
 
 # 모델 
 
@@ -81,6 +82,17 @@ def get_data():
     }
 
     return jsonify(data)
+
+@app.route('/recommend', methods=['POST'])
+def recommend_movie():
+    request_data = request.json
+    user_id = request_data.get('user_id', '')
+    saved = request_data.get('saved', '')
+
+    recommended = recommendation(user_id, saved)
+
+    return recommended
+
 
 @app.route('/chatdata', methods=['GET'])
 def get_chatdata():

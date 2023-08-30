@@ -3,7 +3,7 @@
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
 # pip install "git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf" #쌍따옴표로 하니까 됨
 
-PATH = r'C:\2023-1 Workspace\hanul\Flask-hanul\kobert_state_ver3.pt'
+PATH = r'C:\Welover\Flask-hanul\kobert_state_ver3.pt'
 
 import torch
 from torch import nn
