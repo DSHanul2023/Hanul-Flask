@@ -1,20 +1,17 @@
 from flask import Flask, request, jsonify
-from kobert_tokenizer import KoBERTTokenizer
-
-from get_data import get_item_data, get_chat_data, preprocess_movie_info
+from get_data import get_item, get_chat
+from add_tokens import mecab_preprocess
 from minichat import minichatmovie
-import torch
 import os
+from recommend import create_view, recommendation
 from kogpt2_transformers import get_kogpt2_tokenizer
-from model.kogpt2 import DialogKoGPT2Wrapper,DialogKoGPT2
-from emotion import BERTClassifier,predict
-import json
+from model.kogpt2 import DialogKoGPT2Wrapper
+from emotion import predict
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from recommend import create_view
 from add_tokens import mecab_preprocess
 
-from recommend import recommend_movies_for_members
 
 root_path = '.'
 checkpoint_path = f"{root_path}/checkpoint"
@@ -24,6 +21,7 @@ save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
@@ -34,28 +32,28 @@ dialog_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path), tokenizer)
 dialog_model.load_model()
 print("load_model 실행됨")
 
+'''
 # global loaded_quantized_model
 # loaded_quantized_model = DialogKoGPT2Wrapper(os.path.abspath(save_ckpt_path2), tokenizer)
 # loaded_quantized_model.load_model()
 # print("loaded_quantized_model 실행됨")
 
 # movie detail 미리 전처리 - 전처리 속도 개선
-# global pre_item_data
-# pre_item_data = None
-# global item_data
-# item_data = get_item_data()
-# movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
-#                'image_url': item[5], 'member_id': item[6]} for item in item_data]
-# pre_item_data = preprocess_movie_info(movie_info)
-# print("preprocess_item 실행됨")
-
-# 영화 데이터 토큰화
-mecab_preprocess()
+global pre_item_data
+pre_item_data = None
+global item_data
+item_data = get_item()
+movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4],
+               'image_url': item[5], 'member_id': item[6]} for item in item_data]
+pre_item_data = preprocess_movie_info(movie_info)
+print("preprocess_item 실행됨")
+'''
 
 # 감정 뷰 생성
-create_view()
+# create_view()
 
-# 모델
+# 모델 
+
 #@app.route('/process2',methods=['POST'])
 #def process2_data():
     #global loaded_quantized_model
@@ -77,8 +75,8 @@ def process_data():
 
 @app.route('/get_data', methods=['GET'])
 def get_data():
-    item_data = get_item_data()
-    chat_data = get_chat_data()
+    item_data = get_item()
+    chat_data = get_chat()
 
     data = {
         "item_data": item_data,
@@ -87,19 +85,32 @@ def get_data():
 
     return jsonify(data)
 
+@app.route('/recommend', methods=['POST'])
+def recommend_movie():
+    request_data = request.json
+    user_id = request_data.get('user_id', '')
+    saved = request_data.get('saved', '')
+
+    recommended = recommendation(user_id, saved)
+
+    return recommended
+
+
 @app.route('/chatdata', methods=['GET'])
 def get_chatdata():
-    chat_data = get_chat_data()
+    chat_data = get_chat()
 
     return jsonify({"chat_data": chat_data})
 
 @app.route('/itemdata', methods=['GET'])
 def get_itemdata():  # 함수 이름 변경
-    item_data = get_item_data()
+    item_data = get_item()
 
     return jsonify({"item_data": item_data})
 
+
 import time
+'''
 @app.route('/movie', methods=['POST'])
 def recommend_movies():
     global pre_item_data
@@ -116,6 +127,7 @@ def recommend_movies():
     print(f"recommend_movies 총 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
     return jsonify(recommended_movies)
+'''
 
 @app.route('/emotion', methods=['POST'])
 
