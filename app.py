@@ -9,6 +9,8 @@ from model.kogpt2 import DialogKoGPT2Wrapper
 from emotion import predict
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from recommend import create_view
+from add_tokens import mecab_preprocess
 
 
 root_path = '.'

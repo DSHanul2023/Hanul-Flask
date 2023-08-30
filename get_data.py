@@ -92,7 +92,7 @@ def get_saved(saved):
         item_data = cursor.fetchall()
         saved_data.append(item_data)
 
-    cursor.close()
-    connection.close()
+    for chat in chat_data:
+        preprocessed_chat_data.append(chat[1])
 
     return saved_data
