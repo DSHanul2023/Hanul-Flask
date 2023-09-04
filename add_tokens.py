@@ -1,6 +1,6 @@
 import sys
-sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
-# sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
+# sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
+sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
 from konlpy.tag import Mecab
 import mysql.connector
 
@@ -21,6 +21,7 @@ def mecab_preprocess(text):
     words = tagger.nouns(text)
     return ' '.join(words)
 
+# 1. 처음 한 번 실행
 if __name__ == "__main__":
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
@@ -30,9 +31,8 @@ if __name__ == "__main__":
     cursor.execute(query.encode('utf8'))
     results = cursor.fetchall()
 
-
-    # query = "ALTER TABLE item DROP COLUMN tokens;"
-    # cursor.execute(query.encode('utf8'))
+    query = "ALTER TABLE item DROP COLUMN tokens;"
+    cursor.execute(query.encode('utf8'))
 
     query = "ALTER TABLE item ADD tokens LONGTEXT"
     cursor.execute(query.encode('utf8'))
