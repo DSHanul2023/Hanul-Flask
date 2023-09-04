@@ -22,7 +22,7 @@ save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
-CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
+# CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
 tokenizer = get_kogpt2_tokenizer()
@@ -50,7 +50,7 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 '''
 
-# 감정 뷰 생성
+# 감정 뷰 생성 (2. 처음 한 번 실행)
 # create_view()
 
 # 모델 
@@ -115,8 +115,10 @@ def recommend_movie():
 @app.route('/recommend2', methods=['GET'])
 def recommend_movie2():
     memberId = request.args.get('memberId')
-    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"  # Replace with your memberId
-    saved = requests.get(spring_url)
+    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"
+    response = requests.get(spring_url)
+    saved_data = response.json()
+    saved = [item["id"] for item in saved_data]
 
     recommended = recommendation(memberId, saved)
 
