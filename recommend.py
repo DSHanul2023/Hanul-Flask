@@ -1,9 +1,10 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import sys
-sys.path.append(r'C:\2023-1 Workspace\hanul\Flask-hanul\venvs\venv\Lib\site-packages')
+sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
 from emotion import predict
-from get_data import get_chat, get_view, preprocess_text
+from operator import itemgetter
+from get_data import get_chat, get_view, get_saved,preprocess_text
 from collections import Counter
 import mysql.connector
 
@@ -15,7 +16,6 @@ db_config = {
     "database": "hanuldb",  # 데이터베이스 이름
     "port": 3306          # MySQL 포트 번호
 }
-
 
 # 추천 영화 중 중복 제거
 def remove_duplicate_movies(movies):
@@ -34,35 +34,35 @@ def create_view():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
 
-    query = "CREATE VIEW anger AS SELECT * FROM item WHERE genre_name LIKE '%액션%' AND genre_name LIKE '%범죄%'"
+    query = "CREATE VIEW anger AS SELECT * FROM item WHERE genre_name LIKE '%action%' AND genre_name LIKE '%Crime%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW worry AS SELECT * FROM item WHERE genre_name LIKE '%드라마%' AND genre_name LIKE '%로맨스%' AND genre_name LIKE '%가족%'"
+    query = "CREATE VIEW worry AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Romance%' AND genre_name LIKE '%Family%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW anxiety AS SELECT * FROM item WHERE genre_name LIKE '%로맨스%' AND genre_name LIKE '%드라마%'"
+    query = "CREATE VIEW anxiety AS SELECT * FROM item WHERE genre_name LIKE '%Romance%' AND genre_name LIKE '%Drama%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW depression AS SELECT * FROM item WHERE genre_name LIKE '%드라마%' AND genre_name LIKE '%음악%' AND genre_name LIKE '%코미디%'"
+    query = "CREATE VIEW depression AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Music%' AND genre_name LIKE '%Comedy%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW fear AS SELECT * FROM item WHERE genre_name LIKE '%애니메이션%' AND genre_name LIKE '%가족%'"
+    query = "CREATE VIEW fear AS SELECT * FROM item WHERE genre_name LIKE '%Animation%' AND genre_name LIKE '%Family%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW sad AS SELECT * FROM item WHERE genre_name LIKE '%드라마%' AND genre_name LIKE '%애니메이션%' AND genre_name LIKE '%코미디%'"
+    query = "CREATE VIEW sad AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Animation%' AND genre_name LIKE '%Comedy%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW joy AS SELECT * FROM item WHERE genre_name LIKE '%판타지%' AND genre_name LIKE '%모험%' AND genre_name LIKE '%액션%'"
+    query = "CREATE VIEW joy AS SELECT * FROM item WHERE genre_name LIKE '%Fantasy%' AND genre_name LIKE '%Adventure%' AND genre_name LIKE '%action%'"
     cursor.execute(query.encode('utf8'))
     
-    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE '%sf%' AND genre_name LIKE '%모험%'"
+    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE '%sf%' AND genre_name LIKE '%Adventure%'"
     cursor.execute(query.encode('utf8'))
 
 
-# 사용자 발화와 영화 내용 간 가중치 계산
-def calc_weight(item_data, chat_data):
+# 사용자 발화와 영화간 유사도 계산(줄거리) / 딕셔너리 반환
+def descr_based_recommender(item_data, chat_data):
     # 영화 정보 데이터
-    movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6], 'tokens': item[7]} for item in item_data]
+    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[9]} for item in item_data]
     
     # 사용자 발화 하나의 문자열로 합치기
     delimiter = " "
@@ -83,16 +83,142 @@ def calc_weight(item_data, chat_data):
     
     for idx, sim in enumerate(cosine_similarities):
         if idx < len(movie_info):
-            movie_info[idx]['cosine_similarity'] = sim
+            movie_info[idx]['dbr_cosine_similarity'] = sim
         else:
             print(f"Index {idx} is out of range for movie_info list.")
     
     return movie_info
 
-def recommendation(user_id):
+
+# 영화간 유사도 계산(메타 데이터) - ver1
+# 사용자 선호 영화 메타 데이터를 하나의 문자열로 합친 뒤 유사도 계산
+def md_based_recommender(item_data, saved_data):
+    # 영화 정보 데이터
+    movie_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in item_data]
+    saved_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in saved_data]
+
+    # movie_info 각 데이터 문자열 전처리 및 인덱스 추가
+    
+    for idx, movie in enumerate(movie_info):
+        if isinstance(movie['director'], str):
+            movie['director'] = ''
+        else:
+            movie['director'] = str.lower(movie['director']).replace(" ", "")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+            movie['idx'] = idx
+    soup = []
+
+    for movie in movie_info:
+        movie['soup'] = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
+        soup.append(movie['soup'])
+
+    # saved_info 각 데이터 문자열 전처리
+    for idx, movie in enumerate(saved_info):
+        if isinstance(movie['director'], str):
+            movie['director'] = ''
+        else:
+            movie['director'] = str.lower(movie['director']).replace(" ", "")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+
+    saved_soup = ''
+
+    # saved_info 데이터 통합
+    for movie in saved_info:
+        temp = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
+        saved_soup = saved_soup + ' ' + temp
+
+    soup.append(saved_soup)
+
+    count = CountVectorizer(stop_words='english')
+    count_matrix = count.fit_transform(soup)
+
+    cosine_sim = cosine_similarity(count_matrix, count_matrix)
+    
+    sim_scores = list(enumerate(cosine_sim[len(cosine_sim)-1]))
+    sim_scores.pop()
+
+    return sim_scores, 1
+
+
+# 영화간 유사도 계산(메타 데이터) - ver2
+# 사용자 선호 영화 개별 데이터와 유사도 계산 후 합산
+def md_based_recommender2(item_data, saved_data):
+    # 영화 정보 데이터
+    movie_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in item_data]
+    saved_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in saved_data]
+
+    # movie_info 각 데이터 문자열 전처리 및 인덱스 추가
+    
+    for idx, movie in enumerate(movie_info):
+        if isinstance(movie['director'], str):
+            movie['director'] = ''
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+            movie['idx'] = idx
+            movie['score'] = 0
+        else:
+            movie['director'] = str.lower(movie['director']).replace(" ", "")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+            movie['idx'] = idx
+            movie['score'] = 0
+    soup = []
+
+    for movie in movie_info:
+        movie['soup'] = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
+        soup.append(movie['soup'])
+
+    # saved_info 각 데이터 문자열 전처리 및 인덱스 추가
+    for idx, movie in enumerate(saved_info):
+        if isinstance(movie['director'], str):
+            movie['director'] = ''
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+        else:
+            movie['director'] = str.lower(movie['director']).replace(" ", "")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+    saved_soup = []
+
+    for movie in saved_info:
+        movie['soup'] = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
+        saved_soup.append(movie['soup'])
+
+    size = len(saved_soup)
+
+    count = CountVectorizer(stop_words='english')
+    for ssoup in saved_soup:
+        soup.append(ssoup)
+        count_matrix = count.fit_transform(soup)
+
+        cosine_sim = cosine_similarity(count_matrix, count_matrix)
+
+        sim_scores = list(enumerate(cosine_sim[len(cosine_sim)-1]))
+        sim_scores.pop()
+        soup.pop()
+
+        for movie, sim_score in zip(movie_info, sim_scores):
+            movie['score'] = movie['score'] + sim_score[1]
+
+    # enumerate를 사용하여 'score' 값을 추출하고 유사도 리스트 생성
+    fsim_scores = [(idx, movie['score']) for idx, movie in enumerate(movie_info)]
+
+    return fsim_scores, size
+
+def recommendation(user_id, saved):
     chat_data = get_chat(user_id)
     predicted_emotions = []
     user_says = []
+
+    saved_data = get_saved(saved)[0]
 
     # 사용자 발화 감정 분석
     for text in chat_data:
@@ -123,23 +249,54 @@ def recommendation(user_id):
     elif emotion == 7:
         e_view = 'fear'
 
-
     # 분류된 감정에 맞는 view에서 아이템 불러오기
-    item_data = get_view(e_view)
-    recommend_movies = calc_weight(item_data, user_says)
+    item_data = get_view(e_view) # 튜플 반환
+    label = ['id', 'cast', 'director', 'genre', 'descr', 'title', 'keyword', 'url', 'mem', 'token']
+    item_dic = []
 
-    for movie in recommend_movies:
-        print(f"Title: {movie['title']}")
-        print(f"Description: {movie['description']}")
-        print(f"Cosine Similarity: {movie.get('cosine_similarity', 'N/A')}")
-        print("\n")
+    for item in item_data:
+        item_dic.append(dict(zip(label, item)))
 
-    return recommend_movies
+    # 줄거리 기반 유사도 계산    
+    recommend_movies = descr_based_recommender(item_data, user_says)
+
+    # 줄거리 기반 추천 유사도 저장
+    for idx, movie in enumerate(recommend_movies):
+        if(item_dic[idx]['title']!=movie['title']):
+            print('index out of range')
+            break
+        item_dic[idx]['dbr_cosine_similarity'] = movie['dbr_cosine_similarity']
+
+    # 북마크 유사도 계산
+    # sim_scores, size = md_based_recommender(item_data, saved_data)
+
+    # 북마크 유사도 계산2
+    sim_scores, size = md_based_recommender2(item_data, saved_data)
+    # print(sim_scores)
+    
+    for idx, score in enumerate(sim_scores):
+        item_dic[idx]['md_cosine_similarity'] = score[1]
+
+    for item in item_dic:
+        value = item['md_cosine_similarity'] + item['dbr_cosine_similarity']
+        min_value = 0
+        max_value = size
+        target_min = 0
+        target_max = 10
+        item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
+
+    sort = sorted(item_dic, key=itemgetter('score'), reverse=True)
+    recommended_movies = sort[0:6]
+    for movie in recommended_movies:
+        print('제목: ',{movie['title']},'\n키워드: ',{movie['keyword']},'\n유사도: ',{movie['score']},'\n\n')
+
+    return 0
 
 if __name__ == "__main__":
     recommendation('a12334')
 
 '''
+
 def recommend_movies_for_members(pre_item_data, item_data, chat_data):
     # 영화 정보 데이터
     movie_info = [{'item_id': item[0], 'genre': item[1], 'description': item[2], 'title': item[3], 'movie_id': item[4], 'image_url': item[5], 'member_id': item[6], 'tokens': item[7]} for item in item_data]
@@ -199,4 +356,8 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
 
     return recommended_movies
 '''
+
+if __name__ == "__main__":
+    # create_view()
+    recommendation('402899838a23ffb6018a2400f47504f6')
 
