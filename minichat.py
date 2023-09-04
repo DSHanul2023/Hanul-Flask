@@ -32,6 +32,7 @@ def minichatmovie(selected_emotions):
         '모험' : ['모험'],
         '애니메이션' : ['애니메이션']
     }
+    
     selected_genres = []
     for emotion in selected_emotions:
         selected_genres.extend(emotion_to_genre.get(emotion, []))
