@@ -3,7 +3,8 @@
 # pip install 'git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf'
 # pip install "git+https://github.com/SKTBrain/KoBERT.git#egg=kobert_tokenizer&subdirectory=kobert_hf" #쌍따옴표로 하니까 됨
 
-PATH = r'C:\Users\82109\Desktop\졸업 프로젝트\Flask-hanul\kobert_state_ver3.pt'
+
+PATH = r'C:\Welover\Flask-hanul\kobert_state_ver3.pt'
 
 import torch
 from torch import nn
@@ -184,4 +185,3 @@ def predict(predict_sentence):
                 test_eval.append(7)
 
         return test_eval[0]
-
