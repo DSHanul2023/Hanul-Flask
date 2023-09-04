@@ -91,6 +91,7 @@ def descr_based_recommender(item_data, chat_data):
 
 
 # 영화간 유사도 계산(메타 데이터) - ver1
+# 사용자 선호 영화 메타 데이터를 하나의 문자열로 합친 뒤 유사도 계산
 def md_based_recommender(item_data, saved_data):
     # 영화 정보 데이터
     movie_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in item_data]
@@ -136,48 +137,81 @@ def md_based_recommender(item_data, saved_data):
     count_matrix = count.fit_transform(soup)
 
     cosine_sim = cosine_similarity(count_matrix, count_matrix)
-
-    sim_scores = list(enumerate(cosine_sim[idx]))
+    
+    sim_scores = list(enumerate(cosine_sim[len(cosine_sim)-1]))
     sim_scores.pop()
 
-    return sim_scores
+    return sim_scores, 1
 
-'''
+
 # 영화간 유사도 계산(메타 데이터) - ver2
+# 사용자 선호 영화 개별 데이터와 유사도 계산 후 합산
 def md_based_recommender2(item_data, saved_data):
     # 영화 정보 데이터
-    movie_info = [{'id': item[], 'director': item[], 'crew': item[], 'genre': item[], 'keywords': item[]} for item in item_data]
+    movie_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in item_data]
+    saved_info = [{'id': item[0], 'director': item[2], 'crew': item[1], 'genre': item[3], 'keywords': item[6]} for item in saved_data]
 
-    # 각 데이터 문자열 전처리 및 인덱스 추가
+    # movie_info 각 데이터 문자열 전처리 및 인덱스 추가
+    
     for idx, movie in enumerate(movie_info):
         if isinstance(movie['director'], str):
             movie['director'] = ''
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+            movie['idx'] = idx
+            movie['score'] = 0
         else:
             movie['director'] = str.lower(movie['director']).replace(" ", "")
-            movie['crew'] = str.lower(movie['crew']).replace(" ", "")
-            movie['crew'] = str.lower(movie['crew']).replace(",", " ")
-            movie['genre'] = str.lower(movie['genre']).replace(" ", "")
-            movie['genre'] = str.lower(movie['genre']).replace(",", " ")
-            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "")
-            movie['keywords'] = str.lower(movie['keywords']).replace(",", " ")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
             movie['idx'] = idx
-
+            movie['score'] = 0
     soup = []
+
     for movie in movie_info:
-        movie['soup'] = ' '.join(movie['keywords']) + ' ' + ' '.join(movie['cast']) + ' ' + movie['director'] + ' ' + ' '.join(movie['genre'])
+        movie['soup'] = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
         soup.append(movie['soup'])
 
+    # saved_info 각 데이터 문자열 전처리 및 인덱스 추가
+    for idx, movie in enumerate(saved_info):
+        if isinstance(movie['director'], str):
+            movie['director'] = ''
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+        else:
+            movie['director'] = str.lower(movie['director']).replace(" ", "")
+            movie['crew'] = str.lower(movie['crew']).replace(" ", "").replace(",", " ")
+            movie['genre'] = str.lower(movie['genre']).replace(" ", "").replace(",", " ")
+            movie['keywords'] = str.lower(movie['keywords']).replace(" ", "").replace(",", " ")
+    saved_soup = []
+
+    for movie in saved_info:
+        movie['soup'] = ''.join(movie['keywords']) + '' + ''.join(movie['crew']) + '' + movie['director'] + '' + ''.join(movie['genre'])
+        saved_soup.append(movie['soup'])
+
+    size = len(saved_soup)
+
     count = CountVectorizer(stop_words='english')
-    count_matrix = count.fit_transform(soup)
+    for ssoup in saved_soup:
+        soup.append(ssoup)
+        count_matrix = count.fit_transform(soup)
 
-    cosine_sim = cosine_similarity(count_matrix, count_matrix)
+        cosine_sim = cosine_similarity(count_matrix, count_matrix)
 
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    movie_indices = [i[0] for i in sim_scores]
+        sim_scores = list(enumerate(cosine_sim[len(cosine_sim)-1]))
+        sim_scores.pop()
+        soup.pop()
 
-    return movie_info
-'''
+        for movie, sim_score in zip(movie_info, sim_scores):
+            movie['score'] = movie['score'] + sim_score[1]
 
+    # enumerate를 사용하여 'score' 값을 추출하고 유사도 리스트 생성
+    fsim_scores = [(idx, movie['score']) for idx, movie in enumerate(movie_info)]
+
+    return fsim_scores, size
 
 def recommendation(user_id, saved):
     chat_data = get_chat(user_id)
@@ -234,7 +268,11 @@ def recommendation(user_id, saved):
         item_dic[idx]['dbr_cosine_similarity'] = movie['dbr_cosine_similarity']
 
     # 북마크 유사도 계산
-    sim_scores = md_based_recommender(item_data, saved_data)
+    # sim_scores, size = md_based_recommender(item_data, saved_data)
+
+    # 북마크 유사도 계산2
+    sim_scores, size = md_based_recommender2(item_data, saved_data)
+    # print(sim_scores)
     
     for idx, score in enumerate(sim_scores):
         item_dic[idx]['md_cosine_similarity'] = score[1]
@@ -242,7 +280,7 @@ def recommendation(user_id, saved):
     for item in item_dic:
         value = item['md_cosine_similarity'] + item['dbr_cosine_similarity']
         min_value = 0
-        max_value = 1
+        max_value = size
         target_min = 0
         target_max = 10
         item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
@@ -250,7 +288,7 @@ def recommendation(user_id, saved):
     sort = sorted(item_dic, key=itemgetter('score'), reverse=True)
     recommended_movies = sort[0:6]
     for movie in recommended_movies:
-        print('제목: ',{movie['title']},'\n 키워드: ',{movie['keyword']},'\n 유사도: ',{movie['score']},'\n\n')
+        print('제목: ',{movie['title']},'\n키워드: ',{movie['keyword']},'\n유사도: ',{movie['score']},'\n\n')
 
     return 0
 
