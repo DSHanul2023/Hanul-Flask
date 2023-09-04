@@ -20,8 +20,19 @@ def minichatmovie(selected_emotions):
         '공포': ['애니메이션', '가족'],
         '슬픔': ['드라마', '애니메이션', '코미디'],
         '기쁨': ['판타지', '모험', '액션'],
-        '설렘': ['SF', '모험']
+        '설렘': ['SF', '모험'],
+
+        '드라마' : ['드라마'],
+        '로맨스' : ['로맨스'],
+        '액션' : ['액션'],
+        '범죄' : ['범죄'],
+        '음악' : ['음악'],
+        '코미디' : ['코미디'],
+        '판타지' : ['판타지'],
+        '모험' : ['모험'],
+        '애니메이션' : ['애니메이션']
     }
+    
     selected_genres = []
     for emotion in selected_emotions:
         selected_genres.extend(emotion_to_genre.get(emotion, []))
