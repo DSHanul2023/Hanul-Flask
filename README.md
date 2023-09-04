@@ -18,3 +18,17 @@
 - 가상환경 아래 scripts 폴더에
 [requirements.txt](https://github.com/DSHanul2023/Flask-hanul/files/12460712/requirements.txt)
 - pip install -r requirements.txt
+
+## 실행 순서
+- python add_tokens.py
+```bash
+query = "ALTER TABLE item DROP COLUMN tokens;"
+cursor.execute(query.encode('utf8'))
+# 처음 생성할 때는 이 부분 주석 처리
+```
+- python app.py
+```bash
+create_view()
+# 처음 실행할 때만 실행
+# 생성 후에는 주석 처리
+```
