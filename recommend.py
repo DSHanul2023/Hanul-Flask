@@ -290,7 +290,7 @@ def recommendation(user_id, saved):
     for movie in recommended_movies:
         print('제목: ',{movie['title']},'\n키워드: ',{movie['keyword']},'\n유사도: ',{movie['score']},'\n\n')
 
-    return 0
+    return recommended_movies
 
 if __name__ == "__main__":
     recommendation('a12334')
@@ -358,6 +358,6 @@ def recommend_movies_for_members(pre_item_data, item_data, chat_data):
 '''
 
 if __name__ == "__main__":
-    # create_view()
-    recommendation('402899838a23ffb6018a2400f47504f6')
+    create_view()
+    # recommendation('402899838a23ffb6018a2400f47504f6')
 
