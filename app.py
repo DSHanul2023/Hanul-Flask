@@ -49,6 +49,10 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 '''
 
+
+# 영화 데이터 토큰화
+# mecab_preprocess()
+
 # 감정 뷰 생성
 # create_view()
 
