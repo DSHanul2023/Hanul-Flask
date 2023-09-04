@@ -11,6 +11,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from recommend import create_view
 from add_tokens import mecab_preprocess
+import requests
 
 
 root_path = '.'
@@ -85,6 +86,21 @@ def get_data():
 
     return jsonify(data)
 
+# 북마크한 아이템 가져오기
+@app.route('/getsaveditems')
+def get_spring_data():
+    memberId = request.args.get('memberId')
+
+    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"  # Replace with your memberId
+    response = requests.get(spring_url)
+
+    if response.status_code == 200:
+        spring_data = response.json()  # Assuming the response is in JSON format
+        # Process the spring_data here
+        return jsonify(spring_data)
+    else:
+        return "Error fetching data from Spring Boot", response.status_code
+
 @app.route('/recommend', methods=['POST'])
 def recommend_movie():
     request_data = request.json
@@ -92,6 +108,17 @@ def recommend_movie():
     saved = request_data.get('saved', '')
 
     recommended = recommendation(user_id, saved)
+
+    return recommended
+
+# 테스트 : /recommend2?memberId={memberId}
+@app.route('/recommend2', methods=['GET'])
+def recommend_movie2():
+    memberId = request.args.get('memberId')
+    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"  # Replace with your memberId
+    saved = requests.get(spring_url)
+
+    recommended = recommendation(memberId, saved)
 
     return recommended
 
