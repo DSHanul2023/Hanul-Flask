@@ -51,14 +51,31 @@ def emotion_minichatmovie(item):
 
 # 미니 챗 영화 추천 - 장르
 def genre_minichatmovie(genres):
+    # 한국어 장르를 영어 장르로 변환하는 사전
+    genre_mapping = {
+        '드라마': 'Drama',
+        '로맨스': 'Romance',
+        '가족': 'Family',
+        '액션': 'Action',
+        '범죄': 'Crime',
+        '음악': 'Music',
+        '코미디': 'Comedy',
+        '판타지': 'Fantasy',
+        '모험': 'Adventure',
+        '애니메이션': 'Animation'
+    }
+
+    # 한국어 장르를 영어 장르로 변환
+    english_genres = [genre_mapping[genre] for genre in genres if genre in genre_mapping]
+
     # 각 장르에 해당하는 아이템을 데이터베이스에서 가져오는 로직
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
-    genre_placeholders = ', '.join(['%s'] * len(genres))
+    genre_placeholders = ', '.join(['%s'] * len(english_genres))
     
-    if genres:
+    if english_genres:
         query = f"SELECT * FROM item WHERE genre_name IN ({genre_placeholders})"
-        cursor.execute(query.encode('utf8'), tuple(genres))
+        cursor.execute(query.encode('utf8'), tuple(english_genres))
         recommended_movies = cursor.fetchall()
     else:
         recommended_movies = []
