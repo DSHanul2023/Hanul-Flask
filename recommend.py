@@ -55,7 +55,7 @@ def create_view():
     query = "CREATE VIEW joy AS SELECT * FROM item WHERE genre_name LIKE '%%Fantasy%' AND genre_name LIKE '%Adventure%' AND genre_name LIKE '%action%'"
     cursor.execute(query.encode('utf8'))
     
-    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE genre_name LIKE '%Adventure%'"
+    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE '%Adventure%'"
     cursor.execute(query.encode('utf8'))
 
 
