@@ -50,8 +50,8 @@ pre_item_data = preprocess_movie_info(movie_info)
 print("preprocess_item 실행됨")
 '''
 
-# 영화 데이터 토큰화
-# mecab_preprocess()
+# 토큰 함수 호출 (add_tokens.py 실행)
+
 
 # 감정 뷰 생성 (2. 처음 한 번 실행)
 # create_view()
