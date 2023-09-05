@@ -34,7 +34,7 @@ def create_view():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
 
-    query = "CREATE VIEW anger AS SELECT * FROM item WHERE genre_name LIKE '%action%' AND genre_name LIKE '%Crime%'"
+    query = "CREATE VIEW anger AS SELECT * FROM item WHERE genre_name LIKE '%%action%' AND genre_name LIKE '%Crime%'"
     cursor.execute(query.encode('utf8'))
 
     query = "CREATE VIEW worry AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Romance%' AND genre_name LIKE '%Family%'"
@@ -46,16 +46,16 @@ def create_view():
     query = "CREATE VIEW depression AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Music%' AND genre_name LIKE '%Comedy%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW fear AS SELECT * FROM item WHERE genre_name LIKE '%Animation%' AND genre_name LIKE '%Family%'"
+    query = "CREATE VIEW fear AS SELECT * FROM item WHERE genre_name LIKE '%Animation%' AND genre_name LIKE '%%Family%'"
     cursor.execute(query.encode('utf8'))
 
     query = "CREATE VIEW sad AS SELECT * FROM item WHERE genre_name LIKE '%Drama%' AND genre_name LIKE '%Animation%' AND genre_name LIKE '%Comedy%'"
     cursor.execute(query.encode('utf8'))
 
-    query = "CREATE VIEW joy AS SELECT * FROM item WHERE genre_name LIKE '%Fantasy%' AND genre_name LIKE '%Adventure%' AND genre_name LIKE '%action%'"
+    query = "CREATE VIEW joy AS SELECT * FROM item WHERE genre_name LIKE '%%Fantasy%' AND genre_name LIKE '%Adventure%' AND genre_name LIKE '%action%'"
     cursor.execute(query.encode('utf8'))
     
-    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE '%sf%' AND genre_name LIKE '%Adventure%'"
+    query = "CREATE VIEW neutral AS SELECT * FROM item WHERE genre_name LIKE '%Adventure%'"
     cursor.execute(query.encode('utf8'))
 
 
