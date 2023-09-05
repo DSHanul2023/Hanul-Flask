@@ -189,25 +189,26 @@ def minichatsurvey():
 
         # 클라이언트에서 전송한 선택 항목을 받아옴
         selected_emotions = request_data.get('selectedItems', [])
-        selected_genres = request_data.get('genres', [])
+        print(selected_emotions)
+        # selected_genres = request_data.get('genres', [])
 
         # 감정 키워드에 해당하는 영화 추천
         recommended_movies_emotion = minichatmovie(selected_emotions)
         print(recommended_movies_emotion)
 
         # 장르 키워드에 해당하는 영화 추천
-        recommended_movies_genre = minichatmovie(selected_genres)
-        print(recommended_movies_genre)
+        # recommended_movies_genre = minichatmovie(selected_genres)
+        # print(recommended_movies_genre)
 
         # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
         #final_recommended_movies = recommended_movies_emotion + recommended_movies_genre
 
         # 중복 영화 제거
         #final_recommended_movies = remove_duplicate_movies(final_recommended_movies)
-        final_recommended_movies = recommended_movies_genre if recommended_movies_genre else recommended_movies_emotion
+        recommended_movies_emotion
 
         # 추천된 영화를 JSON 형태로 반환
-        return jsonify({"recommended_movies": final_recommended_movies})
+        return jsonify({"recommended_movies": recommended_movies_emotion})
 
     except Exception as e:
         return jsonify({"error": str(e)})
