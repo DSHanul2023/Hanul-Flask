@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from get_data import get_item, get_chat
 from add_tokens import mecab_preprocess
-from minichat import minichatmovie
+from minichat import distinguish, genre_minichatmovie, emotion_minichatmovie
 import os
 from recommend import create_view, recommendation
 from kogpt2_transformers import get_kogpt2_tokenizer
@@ -188,30 +188,26 @@ def minichatsurvey():
         request_data = request.get_json()
 
         # 클라이언트에서 전송한 선택 항목을 받아옴
-        selected_emotions = request_data.get('selectedItems', [])
-        print(selected_emotions)
-        # selected_genres = request_data.get('genres', [])
+        selected_items = request_data.get('selectedItems', [])
 
-        # 감정 키워드에 해당하는 영화 추천
-        recommended_movies_emotion = minichatmovie(selected_emotions)
-        print(recommended_movies_emotion)
+        # 감정과 장르를 구분
+        item_type = distinguish(selected_items[0])
 
-        # 장르 키워드에 해당하는 영화 추천
-        # recommended_movies_genre = minichatmovie(selected_genres)
-        # print(recommended_movies_genre)
-
-        # 감정과 장르에 따른 추천 영화를 병합하여 최종 추천 리스트 생성
-        #final_recommended_movies = recommended_movies_emotion + recommended_movies_genre
-
-        # 중복 영화 제거
-        #final_recommended_movies = remove_duplicate_movies(final_recommended_movies)
-        recommended_movies_emotion
+        # 감정인 경우
+        if item_type == 'emotion':
+            # 감정 키워드에 해당하는 영화 추천
+            recommended_movies = emotion_minichatmovie(selected_items[0])
+        # 장르인 경우
+        elif item_type == 'genre':
+            # 장르 키워드에 해당하는 영화 추천
+            recommended_movies = genre_minichatmovie(selected_items)
 
         # 추천된 영화를 JSON 형태로 반환
-        return jsonify({"recommended_movies": recommended_movies_emotion})
+        return jsonify({"recommended_movies": recommended_movies})
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
 
 if __name__ == '__main__':
     app.run()
