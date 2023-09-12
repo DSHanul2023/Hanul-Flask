@@ -3,6 +3,7 @@ import torch
 from pytorch_lightning import LightningModule, Trainer
 from kogpt2_transformers import get_kogpt2_model
 import time
+import re
 
 class DialogKoGPT2(nn.Module):
   def __init__(self):
@@ -12,13 +13,15 @@ class DialogKoGPT2(nn.Module):
   def generate(self,
                input_ids,
                do_sample=True,
-               max_length= 60,
-               top_p=0.92,
+               max_length= 50,
+               # top_p=0.92,
+               top_p=0.94,
                top_k=50,
                temperature= 0.6,
-               no_repeat_ngram_size =None,
+               # no_repeat_ngram_size =None,
+               no_repeat_ngram_size =3,
                num_return_sequences=3,
-               early_stopping=False,
+               early_stopping=True,
                ):
     return self.kogpt2.generate(input_ids,
                do_sample=do_sample,
@@ -87,8 +90,12 @@ class DialogKoGPT2Wrapper(LightningModule):
             print(f"inference 시간: {elapsed_time:.4f} seconds")  # 수행 시간 출력
 
         answer = self.tokenizer.decode(sample_output[0].tolist()[len(tokenized_indexs) + 1:], skip_special_tokens=True)
-        second_dot_index = answer.find('.', answer.find('.') + 1)
-        if second_dot_index != -1:
-            answer = answer[:second_dot_index + 1]
+        print("answer", answer)
+        # second_dot_index = answer.find('.', answer.find('.') + 1)
+        # if second_dot_index != -1:
+        #     answer = answer[:second_dot_index + 1]
+
+        sentences = re.findall(r'[^\s][^.?!]*(?:[.?!]+|$)', answer)
+        answer = ' '.join(sentences[:3])
 
         return answer

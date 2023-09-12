@@ -62,7 +62,7 @@ def create_view():
 # 사용자 발화와 영화간 유사도 계산(줄거리) / 딕셔너리 반환
 def descr_based_recommender(item_data, chat_data):
     # 영화 정보 데이터
-    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[9]} for item in item_data]
+    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[8]} for item in item_data]
     
     # 사용자 발화 하나의 문자열로 합치기
     delimiter = " "
@@ -218,7 +218,12 @@ def recommendation(user_id, saved):
     predicted_emotions = []
     user_says = []
 
-    saved_data = get_saved(saved)[0]
+    print(get_saved(saved))
+
+    if(len(get_saved(saved)) == 0):
+        saved_data = 0
+    else:
+        saved_data = get_saved(saved)[0]
 
     # 사용자 발화 감정 분석
     for text in chat_data:
@@ -271,19 +276,29 @@ def recommendation(user_id, saved):
     # sim_scores, size = md_based_recommender(item_data, saved_data)
 
     # 북마크 유사도 계산2
-    sim_scores, size = md_based_recommender2(item_data, saved_data)
-    # print(sim_scores)
-    
-    for idx, score in enumerate(sim_scores):
-        item_dic[idx]['md_cosine_similarity'] = score[1]
+    if saved_data != 0:
+        sim_scores, size = md_based_recommender2(item_data, saved_data)
+        # print(sim_scores)
+        
+        for idx, score in enumerate(sim_scores):
+            item_dic[idx]['md_cosine_similarity'] = score[1]
 
-    for item in item_dic:
-        value = item['md_cosine_similarity'] + item['dbr_cosine_similarity']
-        min_value = 0
-        max_value = size
-        target_min = 0
-        target_max = 10
-        item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
+        for item in item_dic:
+            value = item['md_cosine_similarity'] + item['dbr_cosine_similarity']
+            min_value = 0
+            max_value = size
+            target_min = 0
+            target_max = 10
+            item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
+
+    else:
+        for item in item_dic:
+            value = item['dbr_cosine_similarity']
+            min_value = 0
+            max_value = 1
+            target_min = 0
+            target_max = 10
+            item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
 
     sort = sorted(item_dic, key=itemgetter('score'), reverse=True)
     recommended_movies = sort[0:6]
