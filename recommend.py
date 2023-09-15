@@ -301,7 +301,7 @@ def recommendation(user_id, saved):
             item['score'] = (value - min_value) / (max_value - min_value) * (target_max - target_min) + target_min
 
     sort = sorted(item_dic, key=itemgetter('score'), reverse=True)
-    recommended_movies = sort[0:6]
+    recommended_movies = sort[0:8]
     for movie in recommended_movies:
         print('제목: ',{movie['title']},'\n키워드: ',{movie['keyword']},'\n유사도: ',{movie['score']},'\n\n')
 

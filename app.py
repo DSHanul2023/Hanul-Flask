@@ -12,6 +12,7 @@ from flask_cors import CORS
 from recommend import create_view
 from add_tokens import mecab_preprocess
 import requests
+from providers import get_provider_data
 
 
 root_path = '.'
@@ -207,6 +208,34 @@ def minichatsurvey():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route('/providers', methods=['GET'])
+def providers():
+    item_id = request.args.get('item_id')
+    # 스프링 부트 서버의 엔드포인트 URL
+    spring_boot_url = f'http://localhost:8080/items/{item_id}'
+
+    # 스프링 부트 서버로 GET 요청을 보냅니다.
+    response = requests.get(spring_boot_url)
+
+    # JSON 응답을 파싱하여 딕셔너리로 변환합니다.
+    data = response.json()
+
+    # "itemNm" 필드의 값을 가져옵니다.
+    item_name = data.get('itemNm', None)
+
+    if item_name:
+        # item_name 변수에 "itemNm" 필드의 값이 들어 있습니다.
+        print(f"Item Name: {item_name}")
+    else:
+        # "itemNm" 필드가 없거나 값이 없을 경우 처리할 내용을 여기에 추가합니다.
+        print("Item Name not found in the response.")
+
+    provider_data = get_provider_data(item_id, item_name)
+
+    # return jsonify(provider_data)
+    return provider_data
+
 
 
 if __name__ == '__main__':
