@@ -96,6 +96,6 @@ class DialogKoGPT2Wrapper(LightningModule):
         #     answer = answer[:second_dot_index + 1]
 
         sentences = re.findall(r'[^\s][^.?!]*(?:[.?!]+|$)', answer)
-        answer = ' '.join(sentences[:3])
+        answer = ' '.join(sentences[:2])
 
         return answer
