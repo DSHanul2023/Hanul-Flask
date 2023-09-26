@@ -185,3 +185,45 @@ def predict(predict_sentence):
                 test_eval.append(7)
 
         return test_eval[0]
+
+def predict2(predict_sentence):
+    data = [predict_sentence, '0']
+    dataset_another = [data]
+
+    another_test = BERTDataset(dataset_another, 0, 1, tokenizer, vocab, max_len, True, False)
+    test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=0)
+
+    c_model.eval()
+
+    for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(test_dataloader):
+        token_ids = token_ids.long().to(device)
+        segment_ids = segment_ids.long().to(device)
+
+        valid_length = valid_length
+        label = label.long().to(device)
+
+        out = c_model(token_ids, valid_length, segment_ids)
+
+        emotion_label = ["분노" ,"슬픔", "기쁨", "걱정", "불안감", "중립", "우울감", "공포감"]
+
+        test_eval = []
+        for i in out:
+            logits = i
+            logits = logits.detach().cpu().numpy()
+
+            if np.argmax(logits) == 0:
+                test_eval.append("fear")
+            elif np.argmax(logits) == 1:
+                test_eval.append("Surprised")
+            elif np.argmax(logits) == 2:
+                test_eval.append("anger")
+            elif np.argmax(logits) == 3:
+                test_eval.append("sad")
+            elif np.argmax(logits) == 4:
+                test_eval.append("neutrality")
+            elif np.argmax(logits) == 5:
+                test_eval.append("happy")
+            elif np.argmax(logits) == 6:
+                test_eval.append("Disgust")
+
+        return test_eval[0]
