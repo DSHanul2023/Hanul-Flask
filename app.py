@@ -6,7 +6,7 @@ import os
 from recommend import create_view, recommendation
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2Wrapper
-from emotion import predict
+from emotion import predict, predict2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from recommend import create_view
@@ -14,17 +14,16 @@ from add_tokens import mecab_preprocess
 import requests
 from providers import get_provider_data
 
-
-root_path = '.'
-checkpoint_path = f"{root_path}/checkpoint"
-save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
-
 # save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
 CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
 # CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
+
+root_path = '.'
+checkpoint_path = f"{root_path}/checkpoint"
+save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
 tokenizer = get_kogpt2_tokenizer()
 
@@ -57,7 +56,7 @@ print("preprocess_item 실행됨")
 # 감정 뷰 생성 (2. 처음 한 번 실행)
 # create_view()
 
-# 모델 
+# 모델
 
 #@app.route('/process2',methods=['POST'])
 #def process2_data():
@@ -163,11 +162,10 @@ def recommend_movies():
 '''
 
 @app.route('/emotion', methods=['POST'])
-
 def emotion():
     request_data = request.json
     sentence = request_data.get('sentence', '')
-    result = predict(sentence)
+    result = predict2(sentence)
     print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
     return result
 
