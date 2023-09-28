@@ -17,6 +17,7 @@ from transformers import BertModel
 
 from transformers import AdamW
 from transformers.optimization import get_cosine_schedule_with_warmup
+from get_data import preprocess_text
 
 device = torch.device('cpu')
 # device = torch.device('cuda')
@@ -227,3 +228,59 @@ def predict2(predict_sentence):
                 test_eval.append("Disgust")
 
         return test_eval[0]
+    
+
+def predict3(chat_data):
+    # 전체 채팅 메시지를 전처리하여 리스트에 저장
+    preprocessed_chat_data = [preprocess_text(chat) for chat in chat_data]
+
+    dataset_another = [(chat, '0') for chat in preprocessed_chat_data]
+
+    another_test = BERTDataset(dataset_another, 0, 1, tokenizer, vocab, max_len, True, False)
+    test_dataloader = torch.utils.data.DataLoader(another_test, batch_size=batch_size, num_workers=0)
+
+    c_model.eval()
+
+    # 감정 카운트 딕셔너리 초기화
+    emotion_count = {
+        "fear": 0,
+        "Surprised": 0,
+        "anger": 0,
+        "sad": 0,
+        "neutrality": 0,
+        "happy": 0,
+        "Disgust": 0
+    }
+
+    for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(test_dataloader):
+        token_ids = token_ids.long().to(device)
+        segment_ids = segment_ids.long().to(device)
+
+        valid_length = valid_length
+        label = label.long().to(device)
+
+        out = c_model(token_ids, valid_length, segment_ids)
+
+        for i in out:
+            logits = i
+            logits = logits.detach().cpu().numpy()
+
+            if np.argmax(logits) == 0:
+                emotion_count["fear"] += 1
+            elif np.argmax(logits) == 1:
+                emotion_count["Surprised"] += 1
+            elif np.argmax(logits) == 2:
+                emotion_count["anger"] += 1
+            elif np.argmax(logits) == 3:
+                emotion_count["sad"] += 1
+            elif np.argmax(logits) == 4:
+                emotion_count["neutrality"] += 1
+            elif np.argmax(logits) == 5:
+                emotion_count["happy"] += 1
+            elif np.argmax(logits) == 6:
+                emotion_count["Disgust"] += 1
+
+    # 가장 많이 등장한 감정 찾기
+    max_emotion = max(emotion_count, key=emotion_count.get)
+
+    return max_emotion  
