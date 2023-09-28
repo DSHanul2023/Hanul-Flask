@@ -6,7 +6,7 @@ import os
 from recommend import create_view, recommendation
 from kogpt2_transformers import get_kogpt2_tokenizer
 from model.kogpt2 import DialogKoGPT2Wrapper
-from emotion import predict, predict2
+from emotion import predict, predict2, predict3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from recommend import create_view
@@ -165,7 +165,7 @@ def recommend_movies():
 def emotion():
     request_data = request.json
     sentence = request_data.get('sentence', '')
-    result = predict2(sentence)
+    result = predict3(sentence)
     print(">> 입력하신 내용에서 " + result + " 느껴집니다.")
     return result
 
