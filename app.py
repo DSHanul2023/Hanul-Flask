@@ -9,7 +9,7 @@ from model.kogpt2 import DialogKoGPT2Wrapper
 from emotion import predict, predict2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from recommend import create_view
+from recommend import create_view, get_emotion
 from add_tokens import mecab_preprocess
 import requests
 from providers import get_provider_data
@@ -21,7 +21,7 @@ CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
 # CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
 ctx = "cpu"
 
-root_path = '.'
+root_path = 'C:/Welover/Flask-hanul'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
@@ -113,6 +113,14 @@ def recommend_movie():
     recommended = recommendation(user_id, saved)
 
     return recommended
+
+@app.route('/emotion2', methods=['GET'])
+def emotion2():
+    memberId = request.args.get('memberId')
+
+    emotion = get_emotion(memberId)
+
+    return emotion
 
 # 테스트 : /recommend2?memberId={memberId}
 @app.route('/recommend2', methods=['GET'])
