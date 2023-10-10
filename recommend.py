@@ -62,7 +62,7 @@ def create_view():
 # 사용자 발화와 영화간 유사도 계산(줄거리) / 딕셔너리 반환
 def descr_based_recommender(item_data, chat_data):
     # 영화 정보 데이터
-    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[8]} for item in item_data]
+    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[9]} for item in item_data]
     
     # 사용자 발화 하나의 문자열로 합치기
     delimiter = " "
@@ -213,17 +213,12 @@ def md_based_recommender2(item_data, saved_data):
 
     return fsim_scores, size
 
-def recommendation(user_id, saved):
+def get_emotion(user_id):
+
+    print("get_emotion3")
     chat_data = get_chat(user_id)
     predicted_emotions = []
     user_says = []
-
-    print(get_saved(saved))
-
-    if(len(get_saved(saved)) == 0):
-        saved_data = 0
-    else:
-        saved_data = get_saved(saved)[0]
 
     # 사용자 발화 감정 분석
     for text in chat_data:
@@ -236,7 +231,7 @@ def recommendation(user_id, saved):
     emotion = emotions[0][0]
 
     e_view = ""
-
+    
     if emotion == 0:
         e_view = 'anger'
     elif emotion == 1:
@@ -253,6 +248,27 @@ def recommendation(user_id, saved):
         e_view = 'depression'
     elif emotion == 7:
         e_view = 'fear'
+
+    return e_view
+
+def recommendation(user_id, saved):
+    chat_data = get_chat(user_id)
+    predicted_emotions = []
+    user_says = []
+
+    # 사용자 발화 감정 분석
+    for text in chat_data:
+        predicted_emotions.append(predict(text))
+        user_says.append(preprocess_text(text))
+
+    print(get_saved(saved))
+
+    if(len(get_saved(saved)) == 0):
+        saved_data = 0
+    else:
+        saved_data = get_saved(saved)[0]
+
+    e_view = get_emotion(user_id)
 
     # 분류된 감정에 맞는 view에서 아이템 불러오기
     item_data = get_view(e_view) # 튜플 반환
