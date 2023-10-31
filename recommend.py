@@ -62,8 +62,13 @@ def create_view():
 # 사용자 발화와 영화간 유사도 계산(줄거리) / 딕셔너리 반환
 def descr_based_recommender(item_data, chat_data):
     # 영화 정보 데이터
-    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[9]} for item in item_data]
-    
+    # movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[9]} for item in item_data]
+    movie_info = [{'genre': item[3], 'title': item[5], 'movie_id': item[0], 'tokens': item[8]} for item in item_data]
+
+    print("movie_info 길이:", len(movie_info))
+    for movie in movie_info:
+        print(movie)
+
     # 사용자 발화 하나의 문자열로 합치기
     delimiter = " "
     user_says = delimiter.join(chat_data)
@@ -261,7 +266,7 @@ def recommendation(user_id, saved):
         predicted_emotions.append(predict(text))
         user_says.append(preprocess_text(text))
 
-    print(get_saved(saved))
+    print("get_saved(saved) : ", get_saved(saved))
 
     if(len(get_saved(saved)) == 0):
         saved_data = 0
@@ -272,7 +277,8 @@ def recommendation(user_id, saved):
 
     # 분류된 감정에 맞는 view에서 아이템 불러오기
     item_data = get_view(e_view) # 튜플 반환
-    label = ['id', 'cast', 'director', 'genre', 'descr', 'title', 'keyword', 'url', 'mem', 'token']
+    # label = ['id', 'cast', 'director', 'genre', 'descr', 'title', 'keyword', 'url', 'mem', 'token']
+    label = ['id', 'cast', 'director', 'genre', 'descr', 'title', 'keyword', 'url', 'token']
     item_dic = []
 
     for item in item_data:
