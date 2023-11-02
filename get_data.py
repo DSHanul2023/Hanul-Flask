@@ -13,7 +13,8 @@ db_config = {
 # KoNLPy의 Okt 객체 생성
 # okt = Okt()
 
-tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
+# tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
+tagger = Mecab("/usr/local/lib/mecab/dic/mecab-ko-dic")
 
 # 텍스트 전처리 및 토큰화 함수
 def preprocess_text(text):
