@@ -4,6 +4,7 @@ model/__pycache__/kogpt2.cpython-311.pyc
 venv/
 venvs/
 model/
+mecab/
 
 *.pyc
 *.iml
