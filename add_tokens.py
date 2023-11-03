@@ -14,7 +14,8 @@ db_config = {
 }
 
 # Mecab 토크나이저 생성
-tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
+# tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
+tagger = Mecab('mecab/share/mecab-ko-dic')
 
 # Mecab 토큰화 함수
 def mecab_preprocess(text):
