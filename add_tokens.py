@@ -6,9 +6,9 @@ from konlpy.tag import Mecab
 import mysql.connector
 
 db_config = {
-    "host": "127.0.0.1",  # 호스트 주소
-    "user": "root",       # 사용자 이름
-    "password": "hanul",  # 비밀번호
+    "host": "database-2.cmcn6ounorqr.ap-northeast-2.rds.amazonaws.com",  # 호스트 주소
+    "user": "hanul_admin",       # 사용자 이름
+    "password": "hanulhanul",  # 비밀번호
     "database": "hanuldb",  # 데이터베이스 이름
     "port": 3306,         # MySQL 포트 번호
     "charset": "utf8"     # 문자셋 지정
