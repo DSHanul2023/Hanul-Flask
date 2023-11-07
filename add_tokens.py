@@ -34,8 +34,8 @@ if __name__ == "__main__":
     results = cursor.fetchall()
 
     # add_tokens.py 처음에 주석 후 실행 -> 주석 제거
-    query = "ALTER TABLE item DROP COLUMN tokens;"
-    cursor.execute(query.encode('utf8'))
+    # query = "ALTER TABLE item DROP COLUMN tokens;"
+    # cursor.execute(query.encode('utf8'))
 
     query = "ALTER TABLE item ADD tokens LONGTEXT"
     cursor.execute(query.encode('utf8'))
