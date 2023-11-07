@@ -1,6 +1,7 @@
 import sys
 # sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
 # sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
+sys.path.append('/home/ubuntu/Flask-hanul/venv/lib/python3.10/site-packages')
 from konlpy.tag import Mecab
 import mysql.connector
 
