@@ -3,18 +3,19 @@ import mysql.connector
 
 # MySQL 데이터베이스 연결 설정
 db_config = {
-    "host": "127.0.0.1",  # 호스트 주소
-    "user": "root",       # 사용자 이름
-    "password": "hanul",  # 비밀번호
+    "host": "database-2.cmcn6ounorqr.ap-northeast-2.rds.amazonaws.com",  # 호스트 주소
+    "user": "hanul_admin",       # 사용자 이름
+    "password": "hanulhanul",  # 비밀번호
     "database": "hanuldb",  # 데이터베이스 이름
-    "port": 3306          # MySQL 포트 번호
+    "port": 3306,         # MySQL 포트 번호
+    "charset": "utf8"     # 문자셋 지정
 }
 
 # KoNLPy의 Okt 객체 생성
 # okt = Okt()
 
 # tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
-tagger = Mecab('mecab/share/mecab-ko-dic')
+tagger = Mecab(dicpath="/home/ubuntu/Flask-hanul/mecab/mecab-ko-dic-2.1.1-20180720")
 
 # 텍스트 전처리 및 토큰화 함수
 def preprocess_text(text):
