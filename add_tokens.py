@@ -1,6 +1,6 @@
 import sys
 # sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
-sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
+# sys.path.append(r'C:\Welover\Flask-hanul\venv\Lib\site-packages') #SCE
 from konlpy.tag import Mecab
 import mysql.connector
 
@@ -15,7 +15,7 @@ db_config = {
 
 # Mecab 토크나이저 생성
 # tagger = Mecab(r'C:\mecab\share\mecab-ko-dic')
-tagger = Mecab('/home/ubuntu/Flask-hanul/mecab/share/mecab-ko-dic')
+tagger = Mecab('/home/ubuntu/Flask-hanul/mecab/mecab-ko-dic-2.1.1-20180720')
 
 # Mecab 토큰화 함수
 def mecab_preprocess(text):
