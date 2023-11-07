@@ -1,7 +1,8 @@
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import sys
-sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
+# sys.path.append(r'C:\Welover\Flask-hanul\venvs\venv\Lib\site-packages')
+sys.path.append('/home/ubuntu/Flask-hanul/venv/lib/python3.10/site-packages')
 from emotion import predict
 from operator import itemgetter
 from get_data import get_chat, get_view, get_saved,preprocess_text
@@ -10,11 +11,12 @@ import mysql.connector
 
 # MySQL 데이터베이스 연결 설정
 db_config = {
-    "host": "127.0.0.1",  # 호스트 주소
-    "user": "root",       # 사용자 이름
-    "password": "hanul",  # 비밀번호
+    "host": "database-2.cmcn6ounorqr.ap-northeast-2.rds.amazonaws.com",  # 호스트 주소
+    "user": "hanul_admin",       # 사용자 이름
+    "password": "hanulhanul",  # 비밀번호
     "database": "hanuldb",  # 데이터베이스 이름
-    "port": 3306          # MySQL 포트 번호
+    "port": 3306,         # MySQL 포트 번호
+    "charset": "utf8"     # 문자셋 지정
 }
 
 # 추천 영화 중 중복 제거
