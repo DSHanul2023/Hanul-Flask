@@ -17,11 +17,11 @@ from providers import get_provider_data, get_provider_crawling
 # save_ckpt_path2 = f"{checkpoint_path}/quantized_kogpt2-wellnesee-auto-regressive.pth"
 
 app = Flask(__name__)
-CORS(app, resources={r"/survey": {"origins": "http://localhost:3000"}})
-# CORS(app, resources={r"/recommend": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/survey": {"origins": "http://43.201.147.216"}})
+# CORS(app, resources={r"/recommend": {"origins": "http://43.201.147.216"}})
 ctx = "cpu"
 
-root_path = 'C:/Welover/Flask-hanul'
+root_path = '/home/ubuntu/Flask-hanul'
 checkpoint_path = f"{root_path}/checkpoint"
 save_ckpt_path = f"{checkpoint_path}/kogpt2-wellnesee-auto-regressive.pth"
 
@@ -94,7 +94,7 @@ def get_data():
 def get_spring_data():
     memberId = request.args.get('memberId')
 
-    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"  # Replace with your memberId
+    spring_url = f"http://43.201.180.174:8080/members/{memberId}/bookmarked-items"  # Replace with your memberId
     response = requests.get(spring_url)
 
     if response.status_code == 200:
@@ -126,7 +126,7 @@ def emotion2():
 @app.route('/recommend2', methods=['GET'])
 def recommend_movie2():
     memberId = request.args.get('memberId')
-    spring_url = f"http://localhost:8080/members/{memberId}/bookmarked-items"
+    spring_url = f"http://43.201.180.174:8080/members/{memberId}/bookmarked-items"
     response = requests.get(spring_url)
     saved_data = response.json()
     saved = [item["id"] for item in saved_data]
@@ -219,8 +219,8 @@ def minichatsurvey():
 def providers():
     item_id = request.args.get('item_id')
     # 스프링 부트 서버의 엔드포인트 URL
-    # spring_boot_url = f'http://localhost:8080/items/{item_id}'
-    spring_boot_url = f'http://localhost:8080/items/provider/{item_id}'
+    # spring_boot_url = f'http://43.201.180.174:8080/items/{item_id}'
+    spring_boot_url = f'http://43.201.180.174:8080/items/provider/{item_id}'
 
     # 스프링 부트 서버로 GET 요청을 보냅니다.
     response = requests.get(spring_boot_url)
