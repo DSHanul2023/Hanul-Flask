@@ -10,9 +10,9 @@ We:Lover - 심리 상담 AI 챗봇 기반 이야기 치료법 제공 서비스
   </tr>
   <tr>
     <td align="center">pjho4746@gmail.com</td>
-    <td align="center">@gmail.com</td>
-    <td align="center">@gmail.com</td>
-    <td align="center">@gmail.com</td>
+    <td align="center">jytp922@gmail.com</td>
+    <td align="center">qlqltjdud@gmail.com</td>
+    <td align="center">hyun918@duksung.ac.kr</td>
   </tr>
   <tr>
     <td align="center">풀스택 개발자</td>
